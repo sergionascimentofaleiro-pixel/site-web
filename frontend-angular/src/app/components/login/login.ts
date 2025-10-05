@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-login',
@@ -18,7 +18,8 @@ export class Login {
 
   constructor(
     private authService: Auth,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
 
   onSubmit(): void {
@@ -31,7 +32,12 @@ export class Login {
     this.errorMessage.set('');
 
     this.authService.login(this.email(), this.password()).subscribe({
-      next: () => {
+      next: (response) => {
+        // Set language preference from backend
+        if (response.preferredLanguage) {
+          this.translate.use(response.preferredLanguage);
+          localStorage.setItem('language', response.preferredLanguage);
+        }
         this.router.navigate(['/discover']);
       },
       error: (error) => {

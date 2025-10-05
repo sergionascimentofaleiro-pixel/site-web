@@ -78,7 +78,8 @@ exports.login = async (req, res) => {
     res.json({
       message: 'Login successful',
       userId: user.id,
-      token
+      token,
+      preferredLanguage: user.preferred_language || 'en'
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -97,6 +98,24 @@ exports.getCurrentUser = async (req, res) => {
     res.json(user);
   } catch (error) {
     console.error('Get user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+// Update user language preference
+exports.updateLanguage = async (req, res) => {
+  try {
+    const { language } = req.body;
+
+    if (!language || !['en', 'fr', 'es', 'pt'].includes(language)) {
+      return res.status(400).json({ error: 'Invalid language code' });
+    }
+
+    await User.updateLanguage(req.user.userId, language);
+
+    res.json({ message: 'Language preference updated successfully' });
+  } catch (error) {
+    console.error('Update language error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

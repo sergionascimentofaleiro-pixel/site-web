@@ -1,10 +1,12 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface User {
   id: number;
   email: string;
+  preferred_language?: string;
   created_at: string;
   last_login: string | null;
   is_active: boolean;
@@ -14,6 +16,7 @@ export interface AuthResponse {
   message: string;
   userId: number;
   token: string;
+  preferredLanguage?: string;
 }
 
 @Injectable({
@@ -25,6 +28,7 @@ export class Auth {
 
   public currentUser = signal<User | null>(null);
   public isAuthenticated = signal<boolean>(false);
+  private translate = inject(TranslateService);
 
   constructor(private http: HttpClient) {
     this.checkAuthStatus();
@@ -37,6 +41,12 @@ export class Auth {
         next: (user) => {
           this.currentUser.set(user);
           this.isAuthenticated.set(true);
+
+          // Apply user's preferred language
+          if (user.preferred_language) {
+            this.translate.use(user.preferred_language);
+            localStorage.setItem('language', user.preferred_language);
+          }
         },
         error: () => {
           this.logout();
@@ -61,6 +71,8 @@ export class Auth {
         tap(response => {
           this.setToken(response.token);
           this.isAuthenticated.set(true);
+          // Load user data to trigger the effect in app.ts
+          this.getCurrentUser().subscribe();
         })
       );
   }
@@ -84,5 +96,9 @@ export class Auth {
 
   private setToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
+  }
+
+  updateLanguage(language: string): Observable<{ message: string }> {
+    return this.http.put<{ message: string }>(`${this.apiUrl}/auth/language`, { language });
   }
 }

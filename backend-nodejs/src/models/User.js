@@ -21,10 +21,17 @@ class User {
 
   static async findById(id) {
     const [rows] = await db.execute(
-      'SELECT id, email, created_at, last_login, is_active FROM users WHERE id = ?',
+      'SELECT id, email, preferred_language, created_at, last_login, is_active FROM users WHERE id = ?',
       [id]
     );
     return rows[0];
+  }
+
+  static async updateLanguage(id, language) {
+    await db.execute(
+      'UPDATE users SET preferred_language = ? WHERE id = ?',
+      [language, id]
+    );
   }
 
   static async updateLastLogin(id) {
