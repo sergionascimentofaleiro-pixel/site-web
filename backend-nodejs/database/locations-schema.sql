@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS cities (
   id INT PRIMARY KEY AUTO_INCREMENT,
   country_id INT NOT NULL,
   state_id INT,  -- NULL for countries without states
-  name VARCHAR(100) NOT NULL,
+  name VARCHAR(200) NOT NULL,
   FOREIGN KEY (country_id) REFERENCES countries(id) ON DELETE CASCADE,
   FOREIGN KEY (state_id) REFERENCES states(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

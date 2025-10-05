@@ -120,16 +120,22 @@ else
     exit 1
 fi
 
-# Step 4.8: Seed location data
+# Step 4.8: Import GeoNames data (all countries and cities with population > 500)
 echo ""
-echo "4️⃣.8 Seeding location data..."
-mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < locations-seed.sql
+echo "4️⃣.8 Importing GeoNames data (countries, states, cities)..."
+echo "    This will download and import worldwide location data."
+echo "    Download size: ~25 MB, Import time: ~15-20 seconds"
+echo ""
+
+# Run the GeoNames import script
+bash import-geonames.sh
 
 if [ $? -eq 0 ]; then
-    echo "✅ Location data seeded successfully"
+    echo "✅ GeoNames data imported successfully"
 else
-    echo "❌ Error seeding locations"
-    exit 1
+    echo "❌ Error importing GeoNames data"
+    echo "    Falling back to basic location data..."
+    mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < locations-seed.sql
 fi
 
 # Step 4.9: Add foreign key constraints for locations in profiles table
