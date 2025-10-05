@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "discover": "Descobrir",
+    "matches": "Matches",
+    "chat": "Chat",
+    "profile": "Perfil",
+    "logout": "Sair"
+  },
+  "auth": {
+    "login": "Entrar",
+    "register": "Registrar",
+    "email": "E-mail",
+    "password": "Senha",
+    "confirmPassword": "Confirmar senha",
+    "firstName": "Primeiro nome",
+    "lastName": "Sobrenome",
+    "alreadyHaveAccount": "Já tem uma conta?",
+    "dontHaveAccount": "Não tem uma conta?",
+    "signIn": "Entrar",
+    "signUp": "Cadastrar"
+  },
+  "profile": {
+    "title": "Meu Perfil",
+    "photoUrl": "URL da foto",
+    "photoPreview": "Pré-visualização da foto",
+    "firstName": "Primeiro nome",
+    "birthDate": "Data de nascimento",
+    "age": "Idade",
+    "years": "anos",
+    "gender": "Gênero",
+    "male": "Masculino",
+    "female": "Feminino",
+    "other": "Outro",
+    "lookingFor": "Procurando por",
+    "location": "Localização",
+    "bio": "Bio",
+    "bioPlaceholder": "Conte-nos sobre você...",
+    "interests": "Interesses",
+    "interestsPlaceholder": "Viagem, Música, Esportes, etc.",
+    "saveProfile": "Salvar perfil",
+    "updateProfile": "Atualizar perfil",
+    "profileUpdated": "Perfil atualizado com sucesso!",
+    "profileCreated": "Perfil criado com sucesso!"
+  },
+  "discover": {
+    "title": "Descobrir",
+    "loading": "Carregando perfis...",
+    "noPhoto": "Sem foto",
+    "interests": "Interesses",
+    "pass": "Pular",
+    "like": "Curtir",
+    "noMoreProfiles": "Sem mais perfis",
+    "noMoreProfilesText": "Você viu todos os perfis disponíveis por enquanto.",
+    "checkBackLater": "Volte mais tarde para novos matches!",
+    "refresh": "Atualizar",
+    "itsAMatch": "🎉 É um Match! 🎉",
+    "matchMessage": "Você e <strong>{{name}}</strong> curtiram um ao outro!",
+    "keepSwiping": "Continuar deslizando",
+    "sendMessage": "Enviar uma mensagem"
+  },
+  "common": {
+    "error": "Ocorreu um erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "close": "Fechar"
+  }
+}

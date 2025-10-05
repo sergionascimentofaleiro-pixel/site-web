@@ -1,7 +1,6 @@
 <div class="profile-container">
   <div class="profile-card">
-    <h1>{{ isNewProfile() ? 'Create Your Profile' : 'Edit Your Profile' }}</h1>
-    <p class="subtitle">Tell us about yourself</p>
+    <h1>{{ 'profile.title' | translate }}</h1>
 
     <form (ngSubmit)="onSubmit()">
       @if (errorMessage()) {
@@ -13,7 +12,7 @@
 
       <!-- Photo -->
       <div class="form-group">
-        <label for="profilePhoto">Profile Photo URL</label>
+        <label for="profilePhoto">{{ 'profile.photoUrl' | translate }}</label>
         <input
           type="url"
           id="profilePhoto"
@@ -23,28 +22,27 @@
         />
         @if (profilePhoto()) {
           <div class="photo-preview">
-            <img [src]="profilePhoto()" alt="Profile preview" />
+            <img [src]="profilePhoto()" [alt]="'profile.photoPreview' | translate" />
           </div>
         }
-        <small>For now, enter a photo URL. Upload feature coming soon!</small>
       </div>
 
       <!-- First Name -->
       <div class="form-group">
-        <label for="firstName">First Name *</label>
+        <label for="firstName">{{ 'profile.firstName' | translate }} *</label>
         <input
           type="text"
           id="firstName"
           [(ngModel)]="firstName"
           name="firstName"
-          placeholder="Your first name"
+          [placeholder]="'profile.firstName' | translate"
           required
         />
       </div>
 
       <!-- Birth Date -->
       <div class="form-group">
-        <label for="birthDate">Birth Date *</label>
+        <label for="birthDate">{{ 'profile.birthDate' | translate }} *</label>
         <input
           type="date"
           id="birthDate"
@@ -53,72 +51,70 @@
           required
         />
         @if (getAge() > 0) {
-          <small>Age: {{ getAge() }} years old</small>
+          <small>{{ 'profile.age' | translate }}: {{ getAge() }} {{ 'profile.years' | translate }}</small>
         }
       </div>
 
       <!-- Gender -->
       <div class="form-group">
-        <label for="gender">I am *</label>
+        <label for="gender">{{ 'profile.gender' | translate }} *</label>
         <select id="gender" [(ngModel)]="gender" name="gender" required>
-          <option value="male">Man</option>
-          <option value="female">Woman</option>
-          <option value="other">Other</option>
+          <option value="male">{{ 'profile.male' | translate }}</option>
+          <option value="female">{{ 'profile.female' | translate }}</option>
+          <option value="other">{{ 'profile.other' | translate }}</option>
         </select>
       </div>
 
       <!-- Looking For -->
       <div class="form-group">
-        <label for="lookingFor">Looking for *</label>
+        <label for="lookingFor">{{ 'profile.lookingFor' | translate }} *</label>
         <select id="lookingFor" [(ngModel)]="lookingFor" name="lookingFor" required>
-          <option value="male">Men</option>
-          <option value="female">Women</option>
-          <option value="other">Other</option>
-          <option value="all">Everyone</option>
+          <option value="male">{{ 'profile.male' | translate }}</option>
+          <option value="female">{{ 'profile.female' | translate }}</option>
+          <option value="other">{{ 'profile.other' | translate }}</option>
         </select>
       </div>
 
       <!-- Location -->
       <div class="form-group">
-        <label for="location">Location</label>
+        <label for="location">{{ 'profile.location' | translate }}</label>
         <input
           type="text"
           id="location"
           [(ngModel)]="location"
           name="location"
-          placeholder="City, Country"
+          [placeholder]="'profile.location' | translate"
         />
       </div>
 
       <!-- Bio -->
       <div class="form-group">
-        <label for="bio">About Me</label>
+        <label for="bio">{{ 'profile.bio' | translate }}</label>
         <textarea
           id="bio"
           [(ngModel)]="bio"
           name="bio"
           rows="4"
-          placeholder="Tell us about yourself, your hobbies, what you're looking for..."
+          [placeholder]="'profile.bioPlaceholder' | translate"
           maxlength="500"
         ></textarea>
-        <small>{{ bio().length }}/500 characters</small>
+        <small>{{ bio().length }}/500</small>
       </div>
 
       <!-- Interests -->
       <div class="form-group">
-        <label for="interests">Interests</label>
+        <label for="interests">{{ 'profile.interests' | translate }}</label>
         <input
           type="text"
           id="interests"
           [(ngModel)]="interests"
           name="interests"
-          placeholder="Music, Travel, Sports, Reading..."
+          [placeholder]="'profile.interestsPlaceholder' | translate"
         />
-        <small>Separate with commas</small>
       </div>
 
       <button type="submit" class="btn-primary" [disabled]="isLoading()">
-        {{ isLoading() ? 'Saving...' : (isNewProfile() ? 'Create Profile' : 'Update Profile') }}
+        {{ isNewProfile() ? ('profile.saveProfile' | translate) : ('profile.updateProfile' | translate) }}
       </button>
     </form>
   </div>

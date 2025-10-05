@@ -2,10 +2,12 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Profile as ProfileService, ProfileData } from '../../services/profile';
+import { TranslateModule } from '@ngx-translate/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-profile',
-  imports: [FormsModule],
+  imports: [FormsModule, TranslateModule, CommonModule],
   templateUrl: './profile.html',
   styleUrl: './profile.scss'
 })

@@ -4,10 +4,19 @@
       <a routerLink="/discover" class="nav-brand">💕 Dating App</a>
 
       <div class="nav-links">
-        <a routerLink="/discover" routerLinkActive="active">Discover</a>
-        <a routerLink="/matches" routerLinkActive="active">Matches</a>
-        <a routerLink="/profile" routerLinkActive="active">Profile</a>
-        <button class="btn-logout" (click)="logout()">Logout</button>
+        <a routerLink="/discover" routerLinkActive="active">{{ 'nav.discover' | translate }}</a>
+        <a routerLink="/matches" routerLinkActive="active">{{ 'nav.matches' | translate }}</a>
+        <a routerLink="/profile" routerLinkActive="active">{{ 'nav.profile' | translate }}</a>
+
+        <div class="language-selector">
+          <select (change)="changeLanguage($any($event.target).value)" [value]="translate.currentLang">
+            @for (lang of availableLanguages; track lang.code) {
+              <option [value]="lang.code">{{ lang.flag }} {{ lang.name }}</option>
+            }
+          </select>
+        </div>
+
+        <button class="btn-logout" (click)="logout()">{{ 'nav.logout' | translate }}</button>
       </div>
     </div>
   </nav>
@@ -72,5 +81,25 @@
   .btn-logout:hover {
     background: var(--primary-color);
     color: white;
+  }
+
+  .language-selector select {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    font-weight: 500;
+    color: #666;
+    transition: all 0.3s;
+  }
+
+  .language-selector select:hover {
+    border-color: var(--primary-color);
+  }
+
+  .language-selector select:focus {
+    outline: none;
+    border-color: var(--primary-color);
   }
 </style>

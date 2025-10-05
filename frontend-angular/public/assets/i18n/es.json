@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "discover": "Descubrir",
+    "matches": "Matches",
+    "chat": "Chat",
+    "profile": "Perfil",
+    "logout": "Cerrar sesión"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "firstName": "Nombre",
+    "lastName": "Apellido",
+    "alreadyHaveAccount": "¿Ya tienes una cuenta?",
+    "dontHaveAccount": "¿No tienes una cuenta?",
+    "signIn": "Iniciar sesión",
+    "signUp": "Registrarse"
+  },
+  "profile": {
+    "title": "Mi Perfil",
+    "photoUrl": "URL de la foto",
+    "photoPreview": "Vista previa de la foto",
+    "firstName": "Nombre",
+    "birthDate": "Fecha de nacimiento",
+    "age": "Edad",
+    "years": "años",
+    "gender": "Género",
+    "male": "Masculino",
+    "female": "Femenino",
+    "other": "Otro",
+    "lookingFor": "Buscando",
+    "location": "Ubicación",
+    "bio": "Bio",
+    "bioPlaceholder": "Cuéntanos sobre ti...",
+    "interests": "Intereses",
+    "interestsPlaceholder": "Viajes, Música, Deportes, etc.",
+    "saveProfile": "Guardar perfil",
+    "updateProfile": "Actualizar perfil",
+    "profileUpdated": "¡Perfil actualizado con éxito!",
+    "profileCreated": "¡Perfil creado con éxito!"
+  },
+  "discover": {
+    "title": "Descubrir",
+    "loading": "Cargando perfiles...",
+    "noPhoto": "Sin foto",
+    "interests": "Intereses",
+    "pass": "Pasar",
+    "like": "Me gusta",
+    "noMoreProfiles": "No hay más perfiles",
+    "noMoreProfilesText": "Has visto todos los perfiles disponibles por ahora.",
+    "checkBackLater": "¡Vuelve más tarde para nuevos matches!",
+    "refresh": "Actualizar",
+    "itsAMatch": "🎉 ¡Es un Match! 🎉",
+    "matchMessage": "¡Tú y <strong>{{name}}</strong> se gustaron mutuamente!",
+    "keepSwiping": "Seguir deslizando",
+    "sendMessage": "Enviar un mensaje"
+  },
+  "common": {
+    "error": "Ocurrió un error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "close": "Cerrar"
+  }
+}

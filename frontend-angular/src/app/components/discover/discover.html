@@ -1,9 +1,9 @@
 <div class="discover-container">
-  <h1>Discover</h1>
+  <h1>{{ 'discover.title' | translate }}</h1>
 
   @if (isLoading()) {
     <div class="loading">
-      <p>Loading profiles...</p>
+      <p>{{ 'discover.loading' | translate }}</p>
     </div>
   }
 
@@ -14,7 +14,7 @@
         @if (currentProfile()?.profile_photo) {
           <img [src]="currentProfile()!.profile_photo" [alt]="currentProfile()!.first_name" />
         } @else {
-          <div class="no-photo">No Photo</div>
+          <div class="no-photo">{{ 'discover.noPhoto' | translate }}</div>
         }
       </div>
 
@@ -32,7 +32,7 @@
 
         @if (currentProfile()?.interests) {
           <div class="interests">
-            <strong>Interests:</strong>
+            <strong>{{ 'discover.interests' | translate }}:</strong>
             <div class="tags">
               @for (interest of currentProfile()!.interests!.split(','); track interest) {
                 <span class="tag">{{ interest.trim() }}</span>
@@ -44,10 +44,10 @@
 
       <!-- Action Buttons -->
       <div class="actions">
-        <button class="btn-pass" (click)="pass()" title="Pass">
+        <button class="btn-pass" (click)="pass()" [title]="'discover.pass' | translate">
           <span class="icon">✖️</span>
         </button>
-        <button class="btn-like" (click)="like()" title="Like">
+        <button class="btn-like" (click)="like()" [title]="'discover.like' | translate">
           <span class="icon">❤️</span>
         </button>
       </div>
@@ -56,10 +56,10 @@
 
   @if (!isLoading() && noMoreProfiles()) {
     <div class="no-profiles">
-      <h2>No More Profiles</h2>
-      <p>You've seen all available profiles for now.</p>
-      <p>Check back later for new matches!</p>
-      <button class="btn-primary" (click)="loadProfiles()">Refresh</button>
+      <h2>{{ 'discover.noMoreProfiles' | translate }}</h2>
+      <p>{{ 'discover.noMoreProfilesText' | translate }}</p>
+      <p>{{ 'discover.checkBackLater' | translate }}</p>
+      <button class="btn-primary" (click)="loadProfiles()">{{ 'discover.refresh' | translate }}</button>
     </div>
   }
 
@@ -67,7 +67,7 @@
   @if (showMatchPopup() && matchedProfile()) {
     <div class="match-overlay" (click)="closeMatchPopup()">
       <div class="match-popup" (click)="$event.stopPropagation()">
-        <h2>🎉 It's a Match! 🎉</h2>
+        <h2>{{ 'discover.itsAMatch' | translate }}</h2>
 
         <div class="match-profiles">
           <img
@@ -76,16 +76,14 @@
           />
         </div>
 
-        <p class="match-message">
-          You and <strong>{{ matchedProfile()!.first_name }}</strong> liked each other!
-        </p>
+        <p class="match-message" [innerHTML]="'discover.matchMessage' | translate:{ name: matchedProfile()!.first_name }"></p>
 
         <div class="match-actions">
           <button class="btn-secondary" (click)="closeMatchPopup()">
-            Keep Swiping
+            {{ 'discover.keepSwiping' | translate }}
           </button>
           <a routerLink="/matches" class="btn-primary">
-            Send a Message
+            {{ 'discover.sendMessage' | translate }}
           </a>
         </div>
       </div>

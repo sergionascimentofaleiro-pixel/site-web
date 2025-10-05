@@ -1,7 +1,7 @@
 <div class="auth-container">
   <div class="auth-card">
-    <h1>Create Account</h1>
-    <p class="subtitle">Join us today</p>
+    <h1>{{ 'auth.register' | translate }}</h1>
+    <p class="subtitle">{{ 'auth.signUp' | translate }}</p>
 
     <form (ngSubmit)="onSubmit()">
       @if (errorMessage()) {
@@ -9,48 +9,48 @@
       }
 
       <div class="form-group">
-        <label for="email">Email</label>
+        <label for="email">{{ 'auth.email' | translate }}</label>
         <input
           type="email"
           id="email"
           [(ngModel)]="email"
           name="email"
-          placeholder="Enter your email"
+          [placeholder]="'auth.email' | translate"
           required
         />
       </div>
 
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="password">{{ 'auth.password' | translate }}</label>
         <input
           type="password"
           id="password"
           [(ngModel)]="password"
           name="password"
-          placeholder="Enter your password"
+          [placeholder]="'auth.password' | translate"
           required
         />
       </div>
 
       <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
+        <label for="confirmPassword">{{ 'auth.confirmPassword' | translate }}</label>
         <input
           type="password"
           id="confirmPassword"
           [(ngModel)]="confirmPassword"
           name="confirmPassword"
-          placeholder="Confirm your password"
+          [placeholder]="'auth.confirmPassword' | translate"
           required
         />
       </div>
 
       <button type="submit" class="btn-primary" [disabled]="isLoading()">
-        {{ isLoading() ? 'Creating account...' : 'Sign Up' }}
+        {{ 'auth.signUp' | translate }}
       </button>
     </form>
 
     <p class="auth-link">
-      Already have an account? <a routerLink="/login">Sign In</a>
+      {{ 'auth.alreadyHaveAccount' | translate }} <a routerLink="/login">{{ 'auth.signIn' | translate }}</a>
     </p>
   </div>
 </div>

@@ -2,10 +2,11 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Profile as ProfileService, PotentialMatch } from '../../services/profile';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-discover',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, TranslateModule],
   templateUrl: './discover.html',
   styleUrl: './discover.scss'
 })

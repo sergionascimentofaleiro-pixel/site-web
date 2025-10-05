@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "discover": "Découvrir",
+    "matches": "Matchs",
+    "chat": "Chat",
+    "profile": "Profil",
+    "logout": "Déconnexion"
+  },
+  "auth": {
+    "login": "Connexion",
+    "register": "Inscription",
+    "email": "E-mail",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "firstName": "Prénom",
+    "lastName": "Nom",
+    "alreadyHaveAccount": "Vous avez déjà un compte ?",
+    "dontHaveAccount": "Vous n'avez pas de compte ?",
+    "signIn": "Se connecter",
+    "signUp": "S'inscrire"
+  },
+  "profile": {
+    "title": "Mon Profil",
+    "photoUrl": "URL de la photo",
+    "photoPreview": "Aperçu de la photo",
+    "firstName": "Prénom",
+    "birthDate": "Date de naissance",
+    "age": "Âge",
+    "years": "ans",
+    "gender": "Genre",
+    "male": "Homme",
+    "female": "Femme",
+    "other": "Autre",
+    "lookingFor": "Recherche",
+    "location": "Localisation",
+    "bio": "Bio",
+    "bioPlaceholder": "Parlez-nous de vous...",
+    "interests": "Centres d'intérêt",
+    "interestsPlaceholder": "Voyage, Musique, Sport, etc.",
+    "saveProfile": "Enregistrer le profil",
+    "updateProfile": "Mettre à jour le profil",
+    "profileUpdated": "Profil mis à jour avec succès !",
+    "profileCreated": "Profil créé avec succès !"
+  },
+  "discover": {
+    "title": "Découvrir",
+    "loading": "Chargement des profils...",
+    "noPhoto": "Pas de photo",
+    "interests": "Centres d'intérêt",
+    "pass": "Passer",
+    "like": "J'aime",
+    "noMoreProfiles": "Plus de profils",
+    "noMoreProfilesText": "Vous avez vu tous les profils disponibles pour le moment.",
+    "checkBackLater": "Revenez plus tard pour de nouveaux matchs !",
+    "refresh": "Actualiser",
+    "itsAMatch": "🎉 C'est un Match ! 🎉",
+    "matchMessage": "Vous et <strong>{{name}}</strong> vous aimez mutuellement !",
+    "keepSwiping": "Continuer à swiper",
+    "sendMessage": "Envoyer un message"
+  },
+  "common": {
+    "error": "Une erreur s'est produite",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "close": "Fermer"
+  }
+}

@@ -1,0 +1,68 @@
+{
+  "nav": {
+    "discover": "Discover",
+    "matches": "Matches",
+    "chat": "Chat",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "alreadyHaveAccount": "Already have an account?",
+    "dontHaveAccount": "Don't have an account?",
+    "signIn": "Sign In",
+    "signUp": "Sign Up"
+  },
+  "profile": {
+    "title": "My Profile",
+    "photoUrl": "Photo URL",
+    "photoPreview": "Photo Preview",
+    "firstName": "First Name",
+    "birthDate": "Birth Date",
+    "age": "Age",
+    "years": "years",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "other": "Other",
+    "lookingFor": "Looking For",
+    "location": "Location",
+    "bio": "Bio",
+    "bioPlaceholder": "Tell us about yourself...",
+    "interests": "Interests",
+    "interestsPlaceholder": "Travel, Music, Sports, etc.",
+    "saveProfile": "Save Profile",
+    "updateProfile": "Update Profile",
+    "profileUpdated": "Profile updated successfully!",
+    "profileCreated": "Profile created successfully!"
+  },
+  "discover": {
+    "title": "Discover",
+    "loading": "Loading profiles...",
+    "noPhoto": "No Photo",
+    "interests": "Interests",
+    "pass": "Pass",
+    "like": "Like",
+    "noMoreProfiles": "No More Profiles",
+    "noMoreProfilesText": "You've seen all available profiles for now.",
+    "checkBackLater": "Check back later for new matches!",
+    "refresh": "Refresh",
+    "itsAMatch": "🎉 It's a Match! 🎉",
+    "matchMessage": "You and <strong>{{name}}</strong> liked each other!",
+    "keepSwiping": "Keep Swiping",
+    "sendMessage": "Send a Message"
+  },
+  "common": {
+    "error": "An error occurred",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "close": "Close"
+  }
+}
