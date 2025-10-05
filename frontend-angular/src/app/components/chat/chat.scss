@@ -155,8 +155,26 @@
   padding: 1rem 1.5rem;
   border-top: 1px solid #e0e0e0;
   display: flex;
-  gap: 1rem;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 0.5rem;
+  position: relative;
+
+  .typing-indicator {
+    padding: 0.5rem 0;
+
+    .typing-text {
+      color: var(--primary-color);
+      font-size: 0.9rem;
+      font-style: italic;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+  }
+
+  .message-input-wrapper {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+  }
 
   textarea {
     flex: 1;

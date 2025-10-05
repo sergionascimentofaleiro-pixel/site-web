@@ -48,19 +48,27 @@
 
   <!-- Message Input -->
   <div class="message-input-container">
-    <textarea
-      [(ngModel)]="newMessage"
-      [placeholder]="'chat.typePlaceholder' | translate"
-      (keypress)="onKeyPress($event)"
-      rows="1"
-      [disabled]="isSending()"
-    ></textarea>
-    <button
-      class="btn-send"
-      (click)="sendMessage()"
-      [disabled]="!newMessage().trim() || isSending()"
-      [title]="'chat.send' | translate">
-      {{ isSending() ? '⏳' : '📤' }}
-    </button>
+    @if (isTyping()) {
+      <div class="typing-indicator">
+        <span class="typing-text">{{ match()!.otherUser.name }} est en train d'écrire...</span>
+      </div>
+    }
+    <div class="message-input-wrapper">
+      <textarea
+        [(ngModel)]="newMessage"
+        [placeholder]="'chat.typePlaceholder' | translate"
+        (input)="onInput()"
+        (keypress)="onKeyPress($event)"
+        rows="1"
+        [disabled]="isSending()"
+      ></textarea>
+      <button
+        class="btn-send"
+        (click)="sendMessage()"
+        [disabled]="!newMessage().trim() || isSending()"
+        [title]="'chat.send' | translate">
+        {{ isSending() ? '⏳' : '📤' }}
+      </button>
+    </div>
   </div>
 </div>

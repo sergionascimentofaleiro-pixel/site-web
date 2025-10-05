@@ -1,0 +1,54 @@
+<div class="messages-container">
+  <div class="messages-header">
+    <h1>{{ 'messages.title' | translate }}</h1>
+  </div>
+
+  @if (isLoading()) {
+    <div class="loading">
+      <p>{{ 'messages.loading' | translate }}</p>
+    </div>
+  }
+
+  @if (!isLoading() && conversations().length === 0) {
+    <div class="no-conversations">
+      <p class="no-conversations-text">{{ 'messages.noConversations' | translate }}</p>
+      <p class="hint">{{ 'messages.noConversationsText' | translate }}</p>
+      <button class="btn-primary" routerLink="/discover">
+        {{ 'matches.startSwiping' | translate }}
+      </button>
+    </div>
+  }
+
+  @if (!isLoading() && conversations().length > 0) {
+    <div class="conversations-list">
+      @for (conversation of conversations(); track conversation.matchId) {
+        <div
+          class="conversation-item"
+          (click)="openChat(conversation.matchId)"
+          [class.unread]="conversation.unreadCount && conversation.unreadCount > 0">
+
+          <div class="conversation-photo">
+            @if (conversation.otherUser.photo) {
+              <img [src]="conversation.otherUser.photo" [alt]="conversation.otherUser.name" />
+            } @else {
+              <div class="no-photo">
+                {{ conversation.otherUser.name.charAt(0) }}
+              </div>
+            }
+            @if (conversation.unreadCount && conversation.unreadCount > 0) {
+              <div class="unread-badge">{{ conversation.unreadCount }}</div>
+            }
+          </div>
+
+          <div class="conversation-info">
+            <div class="conversation-header">
+              <h3 class="conversation-name">{{ conversation.otherUser.name }}</h3>
+              <span class="conversation-time">{{ getTimeAgo(conversation.lastMessageTime) }}</span>
+            </div>
+            <p class="conversation-preview">{{ getPreviewText(conversation.lastMessage) }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

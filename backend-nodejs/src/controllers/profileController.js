@@ -119,10 +119,10 @@ exports.getPotentialMatches = async (req, res) => {
 
 // Like or pass a profile
 exports.swipe = async (req, res) => {
-  try {
-    const userId = req.user.userId;
-    const { targetUserId, action } = req.body; // action: 'like' or 'pass'
+  const userId = req.user.userId;
+  const { targetUserId, action } = req.body; // action: 'like' or 'pass'
 
+  try {
     if (!targetUserId || !action) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
@@ -138,6 +138,15 @@ exports.swipe = async (req, res) => {
       isMatch: result.isMatch
     });
   } catch (error) {
+    // Handle duplicate entry error gracefully (user already swiped on this profile)
+    if (error.code === 'ER_DUP_ENTRY') {
+      console.log(`User ${userId} already swiped on user ${targetUserId}`);
+      return res.json({
+        message: 'Already swiped on this profile',
+        isMatch: false
+      });
+    }
+
     console.error('Swipe error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }

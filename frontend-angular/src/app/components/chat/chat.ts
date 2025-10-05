@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Message as MessageService, MessageData } from '../../services/message';
 import { Match as MatchService, MatchData } from '../../services/match';
 import { Auth } from '../../services/auth';
+import { SocketService } from '../../services/socket';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -21,15 +22,17 @@ export class Chat implements OnInit, OnDestroy {
   isLoading = signal(true);
   isSending = signal(false);
   currentUserId = signal<number | null>(null);
+  isTyping = signal(false);
 
-  private refreshInterval: any;
+  private typingTimeout: any;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private messageService: MessageService,
     private matchService: MatchService,
-    private authService: Auth
+    private authService: Auth,
+    private socketService: SocketService
   ) {
     // Get current user ID
     const user = this.authService.currentUser();
@@ -39,6 +42,44 @@ export class Chat implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Connect to WebSocket
+    this.socketService.connect();
+
+    // Setup WebSocket event listeners
+    this.socketService.onNewMessage((message) => {
+      // Add message to list if it belongs to this conversation
+      if (message.match_id === this.matchId()) {
+        // Check if message already exists to avoid duplicates
+        this.messages.update(messages => {
+          const exists = messages.some(m => m.id === message.id);
+          if (exists) {
+            return messages; // Don't add duplicate
+          }
+          return [...messages, message];
+        });
+        setTimeout(() => this.scrollToBottom(), 100);
+        this.isSending.set(false);
+      }
+    });
+
+    this.socketService.onMessageError((error) => {
+      console.error('Message error:', error);
+      alert('Erreur lors de l\'envoi du message');
+      this.isSending.set(false);
+    });
+
+    this.socketService.onTyping((data) => {
+      if (data.matchId === this.matchId() && data.userId !== this.currentUserId()) {
+        this.isTyping.set(true);
+      }
+    });
+
+    this.socketService.onStopTyping((data) => {
+      if (data.matchId === this.matchId()) {
+        this.isTyping.set(false);
+      }
+    });
+
     // Get matchId from route
     this.route.params.subscribe(params => {
       const matchId = parseInt(params['matchId']);
@@ -47,18 +88,26 @@ export class Chat implements OnInit, OnDestroy {
         this.loadMatch();
         this.loadMessages();
 
-        // Refresh messages every 3 seconds
-        this.refreshInterval = setInterval(() => {
-          this.loadMessages(true);
-        }, 3000);
+        // Join the conversation room via WebSocket
+        this.socketService.joinConversation(matchId);
       }
     });
   }
 
   ngOnDestroy(): void {
-    if (this.refreshInterval) {
-      clearInterval(this.refreshInterval);
+    // Leave conversation room
+    const matchId = this.matchId();
+    if (matchId) {
+      this.socketService.leaveConversation(matchId);
     }
+
+    // Clean up typing timeout
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    // Remove listeners
+    this.socketService.removeAllListeners();
   }
 
   loadMatch(): void {
@@ -111,10 +160,34 @@ export class Chat implements OnInit, OnDestroy {
     if (!matchId || !match) return;
 
     this.isSending.set(true);
+    const messageText = message;
+    this.newMessage.set('');
 
-    this.messageService.sendMessage(matchId, match.otherUser.id, message).subscribe({
+    // Check if WebSocket is connected
+    if (this.socketService.getConnectionStatus()) {
+      // Send via WebSocket
+      this.socketService.sendMessage(matchId, match.otherUser.id, messageText);
+
+      // Stop typing indicator
+      this.socketService.stopTyping(matchId, match.otherUser.id);
+
+      // Set timeout to fallback to HTTP if WebSocket doesn't respond
+      setTimeout(() => {
+        if (this.isSending()) {
+          console.warn('WebSocket timeout, falling back to HTTP');
+          this.sendViaHttp(matchId, match.otherUser.id, messageText);
+        }
+      }, 3000);
+    } else {
+      // Fallback to HTTP if WebSocket not connected
+      console.log('WebSocket not connected, using HTTP');
+      this.sendViaHttp(matchId, match.otherUser.id, messageText);
+    }
+  }
+
+  private sendViaHttp(matchId: number, receiverId: number, message: string): void {
+    this.messageService.sendMessage(matchId, receiverId, message).subscribe({
       next: () => {
-        this.newMessage.set('');
         this.isSending.set(false);
         this.loadMessages(true);
       },
@@ -124,6 +197,25 @@ export class Chat implements OnInit, OnDestroy {
         this.isSending.set(false);
       }
     });
+  }
+
+  onInput(): void {
+    const matchId = this.matchId();
+    const match = this.match();
+    if (!matchId || !match) return;
+
+    // Send typing indicator
+    this.socketService.startTyping(matchId, match.otherUser.id);
+
+    // Clear previous timeout
+    if (this.typingTimeout) {
+      clearTimeout(this.typingTimeout);
+    }
+
+    // Stop typing after 2 seconds of inactivity
+    this.typingTimeout = setTimeout(() => {
+      this.socketService.stopTyping(matchId, match.otherUser.id);
+    }, 2000);
   }
 
   isMyMessage(message: MessageData): boolean {

@@ -9,6 +9,18 @@ class Message {
     return result.insertId;
   }
 
+  static async getById(messageId) {
+    const [rows] = await db.execute(
+      `SELECT m.*,
+              p.first_name as sender_name, p.profile_photo as sender_photo
+       FROM messages m
+       JOIN profiles p ON m.sender_id = p.user_id
+       WHERE m.id = ?`,
+      [messageId]
+    );
+    return rows[0];
+  }
+
   static async getConversation(matchId, limit = 50) {
     const [rows] = await db.execute(
       `SELECT m.*,
