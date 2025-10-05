@@ -150,28 +150,25 @@ else
     exit 1
 fi
 
-# Step 5: Seed test accounts and profiles
+# Step 5: Generate French test data (200 men + 200 women)
 echo ""
-echo "5️⃣  Seeding test accounts and profiles (40 users)..."
-mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < seed-data.sql
+echo "5️⃣  Generating French test data (200 men + 200 women)..."
+echo "    This will create realistic French profiles with:"
+echo "    - Gender-appropriate photos from randomuser.me"
+echo "    - Random French cities"
+echo "    - Random interests (3-8 per profile)"
+echo "    - Realistic French names and bios"
+echo ""
+
+python3 generate-french-test-data.py
 
 if [ $? -eq 0 ]; then
-    echo "✅ Test accounts and profiles seeded successfully"
+    echo "✅ French test data generated successfully (400 users total)"
 else
-    echo "❌ Error seeding test data"
-    exit 1
-fi
-
-# Step 6: Assign random interests to profiles
-echo ""
-echo "6️⃣  Assigning random interests to test profiles..."
-mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < assign-random-interests.sql > /dev/null 2>&1
-
-if [ $? -eq 0 ]; then
-    echo "✅ Interests assigned to profiles successfully"
-else
-    echo "❌ Error assigning interests to profiles"
-    exit 1
+    echo "❌ Error generating French test data"
+    echo "    Falling back to basic test data..."
+    mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < seed-data.sql
+    mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < assign-random-interests.sql > /dev/null 2>&1
 fi
 
 # Summary
@@ -196,10 +193,14 @@ EOF
 
 echo ""
 echo "Test account credentials:"
-echo "  Email: john.smith@test.com"
-echo "  Password: Test123!"
+echo "  Men: homme1@test.fr to homme200@test.fr"
+echo "  Women: femme1@test.fr to femme200@test.fr"
+echo "  Password: password123"
 echo ""
-echo "All test accounts use password: Test123!"
-echo "See TEST-ACCOUNTS.md for full list"
+echo "All 400 test accounts are French profiles with:"
+echo "  - Realistic French names and bios"
+echo "  - Gender-appropriate photos"
+echo "  - Random French cities"
+echo "  - 3-8 random interests per profile"
 echo ""
 echo "🎉 Ready to use!"

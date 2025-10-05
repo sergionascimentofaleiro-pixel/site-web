@@ -76,7 +76,8 @@
     "itsAMatch": "🎉 It's a Match! 🎉",
     "matchMessage": "You and <strong>{{name}}</strong> liked each other!",
     "keepSwiping": "Keep Swiping",
-    "sendMessage": "Send a Message"
+    "sendMessage": "Send a Message",
+    "nearby": "Nearby"
   },
   "common": {
     "error": "An error occurred",

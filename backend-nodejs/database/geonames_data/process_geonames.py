@@ -90,6 +90,8 @@ with open('cities500.txt', 'r', encoding='utf-8') as f:
             continue
 
         city_name = row[2]  # ASCII name
+        latitude = row[4]   # Latitude
+        longitude = row[5]  # Longitude
         country_code = row[8]
         admin1_code = row[10]
 
@@ -105,11 +107,11 @@ with open('cities500.txt', 'r', encoding='utf-8') as f:
             if full_code in state_map:
                 state_id = state_map[full_code]
 
-        cities_batch.append((country_id, state_id, city_name))
+        cities_batch.append((country_id, state_id, city_name, latitude, longitude))
 
         if len(cities_batch) >= batch_size:
             cursor.executemany(
-                "INSERT INTO cities (country_id, state_id, name) VALUES (%s, %s, %s)",
+                "INSERT INTO cities (country_id, state_id, name, latitude, longitude) VALUES (%s, %s, %s, %s, %s)",
                 cities_batch
             )
             conn.commit()
@@ -120,7 +122,7 @@ with open('cities500.txt', 'r', encoding='utf-8') as f:
 # Insert remaining cities
 if cities_batch:
     cursor.executemany(
-        "INSERT INTO cities (country_id, state_id, name) VALUES (%s, %s, %s)",
+        "INSERT INTO cities (country_id, state_id, name, latitude, longitude) VALUES (%s, %s, %s, %s, %s)",
         cities_batch
     )
     conn.commit()

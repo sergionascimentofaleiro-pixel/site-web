@@ -26,6 +26,9 @@ export interface ProfileData {
 export interface PotentialMatch extends ProfileData {
   user_id: number;
   match_percentage: number;
+  distance_km?: number;
+  city_name?: string;
+  country_name?: string;
 }
 
 @Injectable({

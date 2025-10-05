@@ -42,8 +42,26 @@
           }
         </p>
 
-        @if (currentProfile()?.location) {
-          <p class="location">📍 {{ currentProfile()!.location }}</p>
+        @if (currentProfile()?.city_name || currentProfile()?.location) {
+          <p class="location">
+            📍
+            @if (currentProfile()?.city_name) {
+              <span class="city">{{ currentProfile()!.city_name }}</span>
+            } @else if (currentProfile()?.location) {
+              <span class="city">{{ currentProfile()!.location }}</span>
+            }
+            @if (currentProfile()?.country_name) {
+              <span class="country">, {{ currentProfile()!.country_name }}</span>
+            }
+            @if (currentProfile()?.distance_km !== undefined && currentProfile()?.distance_km !== null) {
+              <span class="distance" [class.nearby]="(currentProfile()?.distance_km ?? 999) < 20">
+                • {{ currentProfile()!.distance_km }} km
+                @if ((currentProfile()?.distance_km ?? 999) < 20) {
+                  <span class="nearby-badge">🔥 {{ 'discover.nearby' | translate }}</span>
+                }
+              </span>
+            }
+          </p>
         }
 
         @if (currentProfile()?.bio) {

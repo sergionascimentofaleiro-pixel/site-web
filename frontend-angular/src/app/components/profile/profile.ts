@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Profile as ProfileService, ProfileData } from '../../services/profile';
 import { InterestService, InterestCategory } from '../../services/interest';
 import { LocationService, Country, State, City } from '../../services/location';
+import { Auth } from '../../services/auth';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 
@@ -49,6 +50,7 @@ export class Profile implements OnInit {
     private profileService: ProfileService,
     private interestService: InterestService,
     private locationService: LocationService,
+    private authService: Auth,
     private router: Router,
     private translate: TranslateService
   ) {}
@@ -126,6 +128,24 @@ export class Profile implements OnInit {
       error: () => {
         // Profile doesn't exist yet, that's okay
         this.isNewProfile.set(true);
+
+        // Load email from current user (for new profiles after registration)
+        const currentUser = this.authService.currentUser();
+        if (currentUser && currentUser.email) {
+          this.email.set(currentUser.email);
+        } else {
+          // If currentUser is not loaded yet, fetch it
+          this.authService.getCurrentUser().subscribe({
+            next: (user) => {
+              if (user && user.email) {
+                this.email.set(user.email);
+              }
+            },
+            error: (err) => {
+              console.error('Error loading user email:', err);
+            }
+          });
+        }
       }
     });
   }

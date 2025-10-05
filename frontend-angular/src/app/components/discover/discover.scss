@@ -121,6 +121,51 @@
     color: #666;
     margin: 0.5rem 0;
     font-size: 1rem;
+    line-height: 1.6;
+
+    .city {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .country {
+      color: #777;
+      font-weight: 500;
+    }
+
+    .distance {
+      color: var(--primary-color);
+      font-weight: 600;
+
+      &.nearby {
+        color: #ff6b35;
+        font-weight: 700;
+      }
+
+      .nearby-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #ff6b35 0%, #ff8c42 100%);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        margin-left: 0.5rem;
+        box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+        animation: pulse 2s ease-in-out infinite;
+      }
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 2px 8px rgba(255, 107, 53, 0.4);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(255, 107, 53, 0.6);
+    }
   }
 
   .bio {

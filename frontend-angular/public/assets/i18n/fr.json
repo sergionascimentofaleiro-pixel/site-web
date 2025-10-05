@@ -76,7 +76,8 @@
     "itsAMatch": "🎉 C'est un Match ! 🎉",
     "matchMessage": "Vous et <strong>{{name}}</strong> vous aimez mutuellement !",
     "keepSwiping": "Continuer à swiper",
-    "sendMessage": "Envoyer un message"
+    "sendMessage": "Envoyer un message",
+    "nearby": "À proximité"
   },
   "common": {
     "error": "Une erreur s'est produite",

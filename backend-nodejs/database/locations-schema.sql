@@ -27,9 +27,12 @@ CREATE TABLE IF NOT EXISTS cities (
   country_id INT NOT NULL,
   state_id INT,  -- NULL for countries without states
   name VARCHAR(200) NOT NULL,
+  latitude DECIMAL(10, 8),  -- Geographic coordinates
+  longitude DECIMAL(11, 8),
   FOREIGN KEY (country_id) REFERENCES countries(id) ON DELETE CASCADE,
   FOREIGN KEY (state_id) REFERENCES states(id) ON DELETE CASCADE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   INDEX idx_country (country_id),
-  INDEX idx_state (state_id)
+  INDEX idx_state (state_id),
+  INDEX idx_coordinates (latitude, longitude)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

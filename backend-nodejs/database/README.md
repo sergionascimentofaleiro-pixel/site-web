@@ -19,10 +19,10 @@ Ce script va :
 3. ✅ Créer les tables d'intérêts (interest_categories, interests, profile_interests)
 4. ✅ Insérer 10 catégories d'intérêts et 100 intérêts prédéfinis
 5. ✅ Créer les tables de traductions et insérer les traductions (en, fr, es, pt)
-6. ✅ Créer les tables de localisation (countries, states, cities)
-7. ✅ Importer les données GeoNames (~252 pays, 305 états, 224k villes)
-8. ✅ Créer 40 comptes de test (20 hommes, 20 femmes)
-9. ✅ Assigner des intérêts aléatoires à chaque profil
+6. ✅ Créer les tables de localisation (countries, states, cities) avec coordonnées GPS
+7. ✅ Importer les données GeoNames (~252 pays, 305 états, 224k villes avec GPS)
+8. ✅ Générer 400 comptes de test français (200 hommes, 200 femmes) avec photos
+9. ✅ Assigner des intérêts aléatoires à chaque profil (3-8 par profil)
 
 **Temps d'exécution :** ~1-2 minutes (incluant le téléchargement et import des données géographiques)
 
@@ -68,6 +68,7 @@ cd backend-nodejs/database
 - **`init-db.sh`** - Initialise la base de données vide avec structure et intérêts (pour production)
 - **`seed-db.sh`** - Ajoute uniquement les données de test (40 comptes + intérêts assignés)
 - **`import-geonames.sh`** - Importe les données de localisation mondiale depuis GeoNames
+- **`generate-french-test-data.py`** - Génère 400 profils français (200 hommes + 200 femmes) avec photos
 
 ## 🔑 Identifiants
 
@@ -78,14 +79,25 @@ cd backend-nodejs/database
 - **Dev password** : `Manuela2011!`
 
 ### Comptes de test
-Tous les comptes de test utilisent le mot de passe : **`Test123!`**
+
+**400 profils français avec photos réalistes :**
+
+Tous les comptes de test utilisent le mot de passe : **`password123`**
 
 Exemples :
-- `john.smith@test.com` / `Test123!`
-- `emma.johnson@test.com` / `Test123!`
-- `mike.wilson@test.com` / `Test123!`
+- **Hommes** : `homme1@test.fr` à `homme200@test.fr` (villes aléatoires)
+- **Femmes** : `femme1@test.fr` à `femme200@test.fr`
+  - `femme1` à `femme50` : **Paris** (50 femmes)
+  - `femme51` à `femme65` : **Orleans** (15 femmes)
+  - `femme66` à `femme200` : villes aléatoires (135 femmes)
 
-Voir `TEST-ACCOUNTS.md` pour la liste complète.
+Chaque profil inclut :
+- ✅ Prénom et nom français réalistes
+- ✅ Photo appropriée selon le genre (via randomuser.me)
+- ✅ Ville française avec coordonnées GPS
+- ✅ Bio personnalisée en français
+- ✅ 3 à 8 intérêts aléatoires
+- ✅ Âge entre 18 et 45 ans
 
 ## 📊 Structure des intérêts
 
@@ -178,7 +190,7 @@ states (
 )
 
 cities (
-  id, country_id, state_id, name
+  id, country_id, state_id, name, latitude, longitude
 )
 ```
 
@@ -192,6 +204,34 @@ cities (
 - 🇨🇳 Chine
 - 🇷🇺 Russie
 - 🇦🇷 Argentine
+
+### 📍 Proximité géographique et matching
+
+Le système utilise les coordonnées GPS des villes pour calculer la distance entre utilisateurs et améliorer le matching :
+
+**Algorithme de matching (max 100 points) :**
+- **20 points** - Compatibilité de genre (recherche de l'utilisateur)
+- **20 points** - Compatibilité d'âge (±5 ans = max, décroissant ensuite)
+- **35 points** - Intérêts communs (5 points par intérêt partagé, max 7 intérêts)
+- **20 points** - Proximité géographique (< 20km = BONUS max!)
+
+**Scoring des intérêts :**
+- Chaque intérêt en commun ajoute **5 points**
+- Maximum de **7 intérêts** considérés (7 × 5 = 35 points)
+- Les intérêts non partagés ne pénalisent pas le score
+- Exemple : 3 intérêts communs = 15 points, 7+ intérêts communs = 35 points
+
+**Scoring de la distance :**
+- < 20 km → **20 points** (super proximité bonus!)
+- 20-50 km → 12 points
+- 50-100 km → 9 points
+- 100-200 km → 6 points
+- 200-500 km → 3 points
+- > 500 km → 0 points
+
+**Calcul de distance :** Formule de Haversine (distance en km entre deux coordonnées GPS)
+
+Les profils potentiels affichent la distance en km et le pourcentage de match.
 
 ## 🔧 Utilisation avancée
 
@@ -228,14 +268,34 @@ mysql -uroot -pManuela2011 dating_app -e "
 "
 ```
 
+## 🎯 Génération manuelle de données de test
+
+Pour régénérer uniquement les 400 profils français :
+
+```bash
+cd backend-nodejs/database
+python3 generate-french-test-data.py
+```
+
+Ce script :
+- Supprime les comptes de test existants (@test.fr)
+- Crée 200 hommes avec photos masculines (villes aléatoires)
+- Crée 200 femmes avec photos féminines :
+  - 50 à Paris
+  - 15 à Orleans
+  - 135 dans d'autres villes aléatoires
+- Assigne 3-8 intérêts aléatoires par profil
+- Génère des noms, bios et âges réalistes
+
 ## ⚠️ Notes importantes
 
 - Le script `full-reset.sh` **supprime TOUTES les données** - utilisez avec précaution !
 - Le charset **utf8mb4** est requis pour les emojis dans les intérêts
 - Les mots de passe des comptes de test sont hashés avec bcryptjs (10 rounds)
-- Les profils ont des intérêts aléatoires entre 5 et 15 par personne
+- Les profils ont des intérêts aléatoires entre 3 et 8 par personne
 - L'import GeoNames nécessite **Python 3** et **mysql-connector-python**
 - Les villes ont un nom limité à **200 caractères** (VARCHAR(200))
+- Les coordonnées GPS utilisent DECIMAL(10,8) pour latitude et DECIMAL(11,8) pour longitude
 
 ## 🐛 Dépannage
 
