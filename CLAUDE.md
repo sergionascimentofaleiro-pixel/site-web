@@ -13,14 +13,35 @@ The backend and frontend are separate applications that run independently and co
 
 ### Database Setup
 
-The application uses MariaDB. To set up:
+The application uses MariaDB. To set up the complete database with all features:
+
+**Full Reset (Recommended):**
+```bash
+cd backend-nodejs/database
+./full-reset.sh
+```
+
+This script will:
+1. Drop and recreate the database
+2. Create all tables (users, profiles, matches, messages, interests, locations)
+3. Seed interest categories and translations (en, fr, es, pt)
+4. Import worldwide location data from GeoNames (~225k cities with population > 500)
+5. Create test accounts (40 users) with random interests
+6. Total time: ~1-2 minutes
+
+**Manual Setup:**
 ```bash
 mysql -u root -p
 source backend-nodejs/database/setup.sql
 source backend-nodejs/database/schema.sql
 ```
 
-See `SETUP.md` for complete installation instructions.
+**Database Credentials:**
+- Root password: `Manuela2011`
+- Dev user: `devuser` / `Manuela2011!`
+- Database: `dating_app`
+
+See `backend-nodejs/database/README.md` for complete database documentation.
 
 ## Development Commands
 
@@ -71,10 +92,12 @@ The backend follows an MVC-like structure with directories for:
 - `src/server.js` - Application entry point with Express configuration
 
 **API Endpoints:**
-- Authentication: `/api/auth/*` (register, login, me)
+- Authentication: `/api/auth/*` (register, login, me, update preferences)
 - Profiles: `/api/profile/*` (CRUD, potential matches, swipe)
 - Matches: `/api/matches/*` (list, unmatch)
 - Messages: `/api/messages/*` (send, conversations, unread count)
+- Interests: `/api/interests/*` (get all with translations, get/set user interests)
+- Locations: `/api/locations/*` (countries, states, cities, search with autocomplete)
 
 All protected routes require JWT Bearer token authentication. CORS is enabled for cross-origin requests.
 
@@ -88,10 +111,12 @@ Angular 20 application using:
 - **HTTP Interceptor** for automatic JWT token injection
 
 **Services:**
-- `Auth` - Authentication (login, register, getCurrentUser)
+- `Auth` - Authentication (login, register, getCurrentUser, language preferences)
 - `Profile` - Profile management and swiping
 - `Match` - Match management
 - `Message` - Messaging functionality
+- `Interest` - Interest categories and user interests management
+- `Location` - Countries, states, cities with autocomplete search
 
 **Components:**
 - Login/Register - Authentication forms
@@ -110,6 +135,52 @@ Application configuration is centralized in `src/app/app.config.ts` with provide
 - Router
 - Global error listeners
 - HTTP Client with auth interceptor
+- i18n with ngx-translate (English, French, Spanish, Portuguese)
+
+### Internationalization (i18n)
+
+The application supports 4 languages:
+- **English (en)** - Default fallback
+- **French (fr)** - Primary language
+- **Spanish (es)**
+- **Portuguese (pt)**
+
+Translation files are located in `frontend-angular/public/assets/i18n/`.
+
+**Language Features:**
+- User can select preferred language (stored in database)
+- Language persists across sessions
+- All UI elements are translated
+- Interest categories and names are translated
+- Location names support multiple languages (countries)
+
+**Implementation:**
+- Uses `ngx-translate` library
+- Default language: French
+- Language selector in navigation bar
+- Automatic language detection from user preferences
+
+### Key Features
+
+**1. Interest System:**
+- 10 interest categories (Sports, Music, Arts, etc.)
+- 100 predefined interests
+- Fully translated in 4 languages
+- Users can select multiple interests
+- Interest matching for better compatibility
+
+**2. Location System:**
+- Worldwide coverage: 252 countries, 305 states, 224k+ cities
+- Cascading selection: Country → State (if applicable) → City
+- City autocomplete search (performance optimized)
+- Search filters up to 500 results
+- Data sourced from GeoNames
+
+**3. Profile System:**
+- Public info: Name, photo, bio, interests, location
+- Private info: Email, phone (not shared with matches)
+- Age calculation from birth date
+- Gender and preference selection
 
 ### Code Style
 
@@ -121,3 +192,21 @@ Frontend uses Prettier with these settings:
 ## Testing
 
 Frontend tests use Jasmine and Karma. Tests run in Chrome by default.
+
+## Database Schema
+
+**Main Tables:**
+- `users` - Authentication and user preferences
+- `profiles` - User profile information
+- `likes` - Swipe actions (like/pass)
+- `matches` - Mutual likes
+- `messages` - Chat messages between matches
+- `interest_categories` - Interest categories
+- `interests` - Available interests
+- `interest_translations` - Interest name translations
+- `profile_interests` - User-interest associations
+- `countries` - Countries with translations
+- `states` - States/provinces for specific countries
+- `cities` - Cities (225k entries, population > 500)
+
+See `backend-nodejs/database/README.md` for detailed schema documentation.
