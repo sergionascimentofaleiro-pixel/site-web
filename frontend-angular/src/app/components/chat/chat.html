@@ -1,1 +1,66 @@
-<p>chat works!</p>
+<div class="chat-container">
+  <!-- Header -->
+  <div class="chat-header">
+    <button class="btn-back" routerLink="/matches" title="Retour aux matchs">
+      ← {{ 'chat.back' | translate }}
+    </button>
+
+    @if (match()) {
+      <div class="match-info">
+        <div class="match-photo-small">
+          @if (match()!.otherUser.photo) {
+            <img [src]="match()!.otherUser.photo" [alt]="match()!.otherUser.name" />
+          } @else {
+            <div class="no-photo-small">{{ match()!.otherUser.name.charAt(0) }}</div>
+          }
+        </div>
+        <h2>{{ match()!.otherUser.name }}</h2>
+      </div>
+    }
+  </div>
+
+  <!-- Messages List -->
+  <div class="messages-list">
+    @if (isLoading()) {
+      <div class="loading">
+        <p>{{ 'chat.loading' | translate }}</p>
+      </div>
+    }
+
+    @if (!isLoading() && messages().length === 0) {
+      <div class="no-messages">
+        <p>{{ 'chat.noMessages' | translate }}</p>
+        <p class="hint">{{ 'chat.startConversation' | translate }}</p>
+      </div>
+    }
+
+    @if (!isLoading() && messages().length > 0) {
+      @for (message of messages(); track message.id) {
+        <div class="message" [class.my-message]="isMyMessage(message)" [class.their-message]="!isMyMessage(message)">
+          <div class="message-bubble">
+            <p class="message-text">{{ message.message }}</p>
+            <span class="message-time">{{ getTimeString(message.created_at) }}</span>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Message Input -->
+  <div class="message-input-container">
+    <textarea
+      [(ngModel)]="newMessage"
+      [placeholder]="'chat.typePlaceholder' | translate"
+      (keypress)="onKeyPress($event)"
+      rows="1"
+      [disabled]="isSending()"
+    ></textarea>
+    <button
+      class="btn-send"
+      (click)="sendMessage()"
+      [disabled]="!newMessage().trim() || isSending()"
+      [title]="'chat.send' | translate">
+      {{ isSending() ? '⏳' : '📤' }}
+    </button>
+  </div>
+</div>

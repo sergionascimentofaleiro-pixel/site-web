@@ -2,6 +2,7 @@
   "nav": {
     "discover": "Découvrir",
     "matches": "Matchs",
+    "messages": "Messages",
     "chat": "Chat",
     "profile": "Profil",
     "logout": "Déconnexion"
@@ -90,6 +91,21 @@
     "matchesPlural": "matchs",
     "message": "Message",
     "unmatch": "Supprimer le match"
+  },
+  "chat": {
+    "back": "Retour",
+    "loading": "Chargement des messages...",
+    "noMessages": "Pas encore de messages",
+    "startConversation": "Envoyez le premier message pour démarrer la conversation !",
+    "typePlaceholder": "Tapez votre message...",
+    "send": "Envoyer"
+  },
+  "messages": {
+    "title": "Messages",
+    "loading": "Chargement des conversations...",
+    "noConversations": "Aucune conversation",
+    "noConversationsText": "Commencez à chatter avec vos matchs !",
+    "unread": "non lu"
   },
   "common": {
     "error": "Une erreur s'est produite",
