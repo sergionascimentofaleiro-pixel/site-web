@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    preferred_language VARCHAR(5) DEFAULT 'en',
+    preferred_language VARCHAR(5) DEFAULT 'fr',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login TIMESTAMP NULL,
@@ -25,6 +25,9 @@ CREATE TABLE IF NOT EXISTS profiles (
     looking_for ENUM('male', 'female', 'other', 'all') NOT NULL,
     bio TEXT,
     location VARCHAR(255),
+    country_id INT,
+    state_id INT,
+    city_id INT,
     interests TEXT,
     profile_photo VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -32,7 +35,9 @@ CREATE TABLE IF NOT EXISTS profiles (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     INDEX idx_user_id (user_id),
     INDEX idx_gender (gender),
-    INDEX idx_location (location)
+    INDEX idx_location (location),
+    INDEX idx_country (country_id),
+    INDEX idx_city (city_id)
 );
 
 -- Profile photos

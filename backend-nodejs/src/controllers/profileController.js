@@ -15,6 +15,9 @@ exports.createProfile = async (req, res) => {
     const lookingFor = req.body.lookingFor || req.body.looking_for;
     const bio = req.body.bio;
     const location = req.body.location;
+    const countryId = req.body.countryId || req.body.country_id;
+    const stateId = req.body.stateId || req.body.state_id;
+    const cityId = req.body.cityId || req.body.city_id;
     const interests = req.body.interests;
     const profilePhoto = req.body.profilePhoto || req.body.profile_photo;
 
@@ -41,6 +44,9 @@ exports.createProfile = async (req, res) => {
       lookingFor,
       bio,
       location,
+      countryId: countryId || null,
+      stateId: stateId || null,
+      cityId: cityId || null,
       interests,
       profilePhoto
     };

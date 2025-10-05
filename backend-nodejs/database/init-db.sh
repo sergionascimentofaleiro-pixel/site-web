@@ -82,6 +82,39 @@ else
 fi
 
 echo ""
+echo "🌍 Creating location tables (countries, states, cities)..."
+mysql -uroot -p$ROOT_PASS dating_app < locations-schema.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Location tables created"
+else
+    echo "❌ Error creating location tables"
+    exit 1
+fi
+
+echo ""
+echo "🌱 Seeding location data..."
+mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 dating_app < locations-seed.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Location data seeded (10 countries, states, cities)"
+else
+    echo "❌ Error seeding locations"
+    exit 1
+fi
+
+echo ""
+echo "🔗 Adding location foreign keys to profiles table..."
+mysql -uroot -p$ROOT_PASS dating_app < add-location-foreign-keys.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Location foreign keys added"
+else
+    echo "❌ Error adding location foreign keys"
+    exit 1
+fi
+
+echo ""
 echo "========================================="
 echo "  ✅ Database Initialized!"
 echo "========================================="

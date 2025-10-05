@@ -126,17 +126,57 @@
         </select>
       </div>
 
-      <!-- Location -->
+      <!-- Country -->
       <div class="form-group">
-        <label for="location">{{ 'profile.location' | translate }}</label>
-        <input
-          type="text"
-          id="location"
-          [(ngModel)]="location"
-          name="location"
-          [placeholder]="'profile.location' | translate"
-        />
+        <label for="country">{{ 'profile.country' | translate }} *</label>
+        <select
+          id="country"
+          [ngModel]="selectedCountryId()"
+          (ngModelChange)="onCountryChange($event)"
+          name="country"
+          required>
+          <option [ngValue]="null">{{ 'profile.selectCountry' | translate }}</option>
+          @for (country of countries(); track country.id) {
+            <option [ngValue]="country.id">{{ country.name }}</option>
+          }
+        </select>
       </div>
+
+      <!-- State (only for countries with states) -->
+      @if (countryHasStates() && states().length > 0) {
+        <div class="form-group">
+          <label for="state">{{ 'profile.state' | translate }} *</label>
+          <select
+            id="state"
+            [ngModel]="selectedStateId()"
+            (ngModelChange)="onStateChange($event)"
+            name="state"
+            required>
+            <option [ngValue]="null">{{ 'profile.selectState' | translate }}</option>
+            @for (state of states(); track state.id) {
+              <option [ngValue]="state.id">{{ state.name }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <!-- City -->
+      @if (cities().length > 0) {
+        <div class="form-group">
+          <label for="city">{{ 'profile.city' | translate }} *</label>
+          <select
+            id="city"
+            [ngModel]="selectedCityId()"
+            (ngModelChange)="onCityChange($event)"
+            name="city"
+            required>
+            <option [ngValue]="null">{{ 'profile.selectCity' | translate }}</option>
+            @for (city of cities(); track city.id) {
+              <option [ngValue]="city.id">{{ city.name }}</option>
+            }
+          </select>
+        </div>
+      }
 
       <!-- Bio -->
       <div class="form-group">

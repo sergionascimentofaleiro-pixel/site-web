@@ -14,6 +14,9 @@ export interface ProfileData {
   looking_for: 'male' | 'female' | 'other' | 'all';
   bio?: string;
   location?: string;
+  country_id?: number;
+  state_id?: number;
+  city_id?: number;
   interests?: string;
   profile_photo?: string;
   interests_with_icons?: string;
@@ -42,7 +45,7 @@ export class Profile {
   }
 
   getPotentialMatches(limit: number = 10, language?: string): Observable<PotentialMatch[]> {
-    const lang = language || localStorage.getItem('language') || 'en';
+    const lang = language || localStorage.getItem('language') || 'fr';
     return this.http.get<PotentialMatch[]>(`${this.apiUrl}/potential-matches?limit=${limit}&lang=${lang}`);
   }
 

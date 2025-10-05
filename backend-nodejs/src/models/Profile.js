@@ -2,11 +2,11 @@ const db = require('../config/database');
 
 class Profile {
   static async create(profileData) {
-    const { userId, firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, interests, profilePhoto } = profileData;
+    const { userId, firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, countryId, stateId, cityId, interests, profilePhoto } = profileData;
     const [result] = await db.execute(
-      `INSERT INTO profiles (user_id, first_name, last_name, phone, birth_date, gender, looking_for, bio, location, interests, profile_photo)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, interests, profilePhoto]
+      `INSERT INTO profiles (user_id, first_name, last_name, phone, birth_date, gender, looking_for, bio, location, country_id, state_id, city_id, interests, profile_photo)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, countryId, stateId, cityId, interests, profilePhoto]
     );
     return result.insertId;
   }
@@ -28,13 +28,13 @@ class Profile {
   }
 
   static async update(userId, profileData) {
-    const { firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, interests, profilePhoto } = profileData;
+    const { firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, countryId, stateId, cityId, interests, profilePhoto } = profileData;
     await db.execute(
       `UPDATE profiles
        SET first_name = ?, last_name = ?, phone = ?, birth_date = ?, gender = ?, looking_for = ?,
-           bio = ?, location = ?, interests = ?, profile_photo = ?
+           bio = ?, location = ?, country_id = ?, state_id = ?, city_id = ?, interests = ?, profile_photo = ?
        WHERE user_id = ?`,
-      [firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, interests, profilePhoto, userId]
+      [firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, countryId, stateId, cityId, interests, profilePhoto, userId]
     );
   }
 

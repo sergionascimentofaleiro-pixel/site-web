@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Profile as ProfileService, ProfileData } from '../../services/profile';
 import { InterestService, InterestCategory } from '../../services/interest';
+import { LocationService, Country, State, City } from '../../services/location';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 
@@ -28,6 +29,15 @@ export class Profile implements OnInit {
   interestCategories = signal<InterestCategory[]>([]);
   selectedInterestIds = signal<number[]>([]);
 
+  // Location selection
+  countries = signal<Country[]>([]);
+  states = signal<State[]>([]);
+  cities = signal<City[]>([]);
+  selectedCountryId = signal<number | null>(null);
+  selectedStateId = signal<number | null>(null);
+  selectedCityId = signal<number | null>(null);
+  countryHasStates = signal(false);
+
   errorMessage = signal('');
   successMessage = signal('');
   isLoading = signal(false);
@@ -36,15 +46,17 @@ export class Profile implements OnInit {
   constructor(
     private profileService: ProfileService,
     private interestService: InterestService,
+    private locationService: LocationService,
     private router: Router,
     private translate: TranslateService
   ) {}
 
   private get currentLanguage(): string {
-    return this.translate.currentLang || 'en';
+    return localStorage.getItem('language') || this.translate.currentLang || 'fr';
   }
 
   ngOnInit(): void {
+    this.loadCountries();
     this.loadInterests();
     this.loadProfile();
 
@@ -83,6 +95,29 @@ export class Profile implements OnInit {
         this.location.set(profile.location || '');
         this.profilePhoto.set(profile.profile_photo || '');
 
+        // Load location data
+        if (profile.country_id) {
+          this.selectedCountryId.set(profile.country_id);
+          this.onCountryChange(profile.country_id);
+
+          if (profile.state_id) {
+            setTimeout(() => {
+              this.selectedStateId.set(profile.state_id!);
+              this.onStateChange(profile.state_id!);
+
+              if (profile.city_id) {
+                setTimeout(() => {
+                  this.selectedCityId.set(profile.city_id!);
+                }, 200);
+              }
+            }, 200);
+          } else if (profile.city_id) {
+            setTimeout(() => {
+              this.selectedCityId.set(profile.city_id!);
+            }, 200);
+          }
+        }
+
         // Load selected interests
         this.loadMyInterests();
       },
@@ -103,6 +138,72 @@ export class Profile implements OnInit {
         console.error('Error loading my interests:', error);
       }
     });
+  }
+
+  loadCountries(): void {
+    this.locationService.getAllCountries(this.currentLanguage).subscribe({
+      next: (countries) => {
+        this.countries.set(countries);
+      },
+      error: (error) => {
+        console.error('Error loading countries:', error);
+      }
+    });
+  }
+
+  onCountryChange(countryId: number): void {
+    this.selectedCountryId.set(countryId);
+    this.selectedStateId.set(null);
+    this.selectedCityId.set(null);
+    this.states.set([]);
+    this.cities.set([]);
+
+    const country = this.countries().find(c => c.id === countryId);
+    this.countryHasStates.set(country?.has_states || false);
+
+    if (country?.has_states) {
+      // Load states for this country
+      this.locationService.getStatesByCountry(countryId).subscribe({
+        next: (states) => {
+          this.states.set(states);
+        },
+        error: (error) => {
+          console.error('Error loading states:', error);
+        }
+      });
+    } else {
+      // Load cities directly for countries without states
+      this.locationService.getCities(countryId).subscribe({
+        next: (cities) => {
+          this.cities.set(cities);
+        },
+        error: (error) => {
+          console.error('Error loading cities:', error);
+        }
+      });
+    }
+  }
+
+  onStateChange(stateId: number): void {
+    this.selectedStateId.set(stateId);
+    this.selectedCityId.set(null);
+    this.cities.set([]);
+
+    const countryId = this.selectedCountryId();
+    if (countryId) {
+      this.locationService.getCities(countryId, stateId).subscribe({
+        next: (cities) => {
+          this.cities.set(cities);
+        },
+        error: (error) => {
+          console.error('Error loading cities:', error);
+        }
+      });
+    }
+  }
+
+  onCityChange(cityId: number): void {
+    this.selectedCityId.set(cityId);
   }
 
   toggleInterest(interestId: number): void {
@@ -141,6 +242,9 @@ export class Profile implements OnInit {
       looking_for: this.lookingFor(),
       bio: this.bio(),
       location: this.location(),
+      country_id: this.selectedCountryId() || undefined,
+      state_id: this.selectedStateId() || undefined,
+      city_id: this.selectedCityId() || undefined,
       interests: '', // Keep empty for compatibility
       profile_photo: this.profilePhoto()
     };

@@ -19,7 +19,7 @@ export class App implements OnInit {
     { code: 'es', name: 'Español', flag: '🇪🇸' }
   ];
 
-  currentLanguage = 'en';
+  currentLanguage = 'fr';
 
   constructor(
     public authService: Auth,
@@ -28,20 +28,23 @@ export class App implements OnInit {
   ) {
     // Configure available languages
     translate.addLangs(['en', 'fr', 'pt', 'es']);
-    translate.setDefaultLang('en');
+    translate.setDefaultLang('fr');
 
     // Initialize language from localStorage (will be overridden by user preference if authenticated)
     const savedLang = localStorage.getItem('language');
+    let initialLang: string;
+
     if (savedLang && ['en', 'fr', 'pt', 'es'].includes(savedLang)) {
-      translate.use(savedLang);
-      this.currentLanguage = savedLang;
+      initialLang = savedLang;
     } else {
       const browserLang = translate.getBrowserLang();
-      const lang = browserLang && ['en', 'fr', 'pt', 'es'].includes(browserLang) ? browserLang : 'en';
-      translate.use(lang);
-      localStorage.setItem('language', lang);
-      this.currentLanguage = lang;
+      initialLang = browserLang && ['en', 'fr', 'pt', 'es'].includes(browserLang) ? browserLang : 'fr';
+      localStorage.setItem('language', initialLang);
     }
+
+    // IMPORTANT: Use translate.use() immediately to set the language
+    translate.use(initialLang);
+    this.currentLanguage = initialLang;
 
     // React to user changes - when user is loaded, apply their preferred language
     effect(() => {

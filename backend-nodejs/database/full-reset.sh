@@ -108,6 +108,42 @@ else
     exit 1
 fi
 
+# Step 4.7: Create location tables
+echo ""
+echo "4️⃣.7 Creating location tables (countries, states, cities)..."
+mysql -uroot -p$ROOT_PASS $DB_NAME < locations-schema.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Location tables created successfully"
+else
+    echo "❌ Error creating location tables"
+    exit 1
+fi
+
+# Step 4.8: Seed location data
+echo ""
+echo "4️⃣.8 Seeding location data..."
+mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < locations-seed.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Location data seeded successfully"
+else
+    echo "❌ Error seeding locations"
+    exit 1
+fi
+
+# Step 4.9: Add foreign key constraints for locations in profiles table
+echo ""
+echo "4️⃣.9 Adding location foreign keys to profiles table..."
+mysql -uroot -p$ROOT_PASS $DB_NAME < add-location-foreign-keys.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Location foreign keys added successfully"
+else
+    echo "❌ Error adding location foreign keys"
+    exit 1
+fi
+
 # Step 5: Seed test accounts and profiles
 echo ""
 echo "5️⃣  Seeding test accounts and profiles (40 users)..."
@@ -146,7 +182,10 @@ SELECT
     (SELECT COUNT(*) FROM interest_categories) as 'Interest Categories',
     (SELECT COUNT(*) FROM interests) as 'Interests',
     (SELECT COUNT(*) FROM interest_translations) as 'Interest Translations',
-    (SELECT COUNT(*) FROM profile_interests) as 'Profile-Interest Links';
+    (SELECT COUNT(*) FROM profile_interests) as 'Profile-Interest Links',
+    (SELECT COUNT(*) FROM countries) as 'Countries',
+    (SELECT COUNT(*) FROM states) as 'States',
+    (SELECT COUNT(*) FROM cities) as 'Cities';
 EOF
 
 echo ""

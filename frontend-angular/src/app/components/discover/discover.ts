@@ -24,7 +24,7 @@ export class Discover implements OnInit {
   ) {}
 
   private get currentLanguage(): string {
-    return this.translate.currentLang || 'en';
+    return localStorage.getItem('language') || this.translate.currentLang || 'fr';
   }
 
   ngOnInit(): void {

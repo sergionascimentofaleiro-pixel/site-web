@@ -33,12 +33,12 @@ export class InterestService {
   private apiUrl = 'http://localhost:3000/api/interests';
 
   getAllInterests(language?: string): Observable<InterestCategory[]> {
-    const lang = language || localStorage.getItem('language') || 'en';
+    const lang = language || localStorage.getItem('language') || 'fr';
     return this.http.get<InterestCategory[]>(`${this.apiUrl}/all?lang=${lang}`);
   }
 
   getMyInterests(language?: string): Observable<ProfileInterest[]> {
-    const lang = language || localStorage.getItem('language') || 'en';
+    const lang = language || localStorage.getItem('language') || 'fr';
     return this.http.get<ProfileInterest[]>(`${this.apiUrl}/my?lang=${lang}`);
   }
 

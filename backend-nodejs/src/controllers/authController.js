@@ -79,7 +79,7 @@ exports.login = async (req, res) => {
       message: 'Login successful',
       userId: user.id,
       token,
-      preferredLanguage: user.preferred_language || 'en'
+      preferredLanguage: user.preferred_language || 'fr'
     });
   } catch (error) {
     console.error('Login error:', error);

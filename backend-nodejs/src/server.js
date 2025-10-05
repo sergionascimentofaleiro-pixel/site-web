@@ -11,6 +11,7 @@ const profileRoutes = require('./routes/profile');
 const matchRoutes = require('./routes/match');
 const messageRoutes = require('./routes/message');
 const interestRoutes = require('./routes/interest');
+const locationRoutes = require('./routes/location');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,6 +31,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/matches', matchRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/interests', interestRoutes);
+app.use('/api/locations', locationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
