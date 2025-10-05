@@ -1,48 +1,75 @@
 #!/bin/bash
 
-# Script pour initialiser la base de données (première installation)
+# Script pour initialiser la base de données VIDE (première installation)
+# Crée la structure mais n'ajoute PAS de données de test
 # Usage: ./init-db.sh
 
-echo "🚀 Initialisation de la base de données dating_app..."
+echo "========================================="
+echo "  Dating App - Database Initialization"
+echo "========================================="
+echo ""
+echo "This will create an EMPTY database structure."
+echo "No test data will be added."
+echo ""
+echo "For a complete reset WITH test data, use: ./full-reset.sh"
 echo ""
 
-# Demander le mot de passe root MySQL une seule fois
-read -sp "Mot de passe root MySQL: " MYSQL_ROOT_PASSWORD
-echo
+ROOT_PASS="Manuela2011"
 
-echo ""
-echo "🔧 Création de la base de données et de l'utilisateur..."
-
-# Créer la base et l'utilisateur
-mysql -u root -p"$MYSQL_ROOT_PASSWORD" < "$(dirname "$0")/setup.sql"
+echo "🔧 Creating database and user..."
+mysql -uroot -p$ROOT_PASS < setup.sql
 
 if [ $? -eq 0 ]; then
-    echo "✅ Base de données et utilisateur créés"
+    echo "✅ Database and user created"
 else
-    echo "❌ Erreur lors de la création de la base"
+    echo "❌ Error creating database"
     exit 1
 fi
 
 echo ""
-echo "📋 Création des tables..."
-
-# Créer les tables
-mysql -u root -p"$MYSQL_ROOT_PASSWORD" dating_app < "$(dirname "$0")/schema.sql"
+echo "📋 Creating main tables (users, profiles, likes, matches, messages)..."
+mysql -uroot -p$ROOT_PASS dating_app < schema.sql
 
 if [ $? -eq 0 ]; then
-    echo "✅ Tables créées avec succès"
+    echo "✅ Main tables created"
 else
-    echo "❌ Erreur lors de la création des tables"
+    echo "❌ Error creating main tables"
     exit 1
 fi
 
 echo ""
-echo "🎉 Base de données initialisée avec succès!"
+echo "📋 Creating interest tables..."
+mysql -uroot -p$ROOT_PASS dating_app < interests-schema.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Interest tables created"
+else
+    echo "❌ Error creating interest tables"
+    exit 1
+fi
+
+echo ""
+echo "🌱 Seeding interest categories and interests..."
+mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 dating_app < interests-seed.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Interests seeded (10 categories, 100 interests)"
+else
+    echo "❌ Error seeding interests"
+    exit 1
+fi
+
+echo ""
+echo "========================================="
+echo "  ✅ Database Initialized!"
+echo "========================================="
 echo ""
 echo "Configuration:"
-echo "  - Base de données: dating_app"
-echo "  - Utilisateur: devuser"
-echo "  - Mot de passe: Manuela2011!"
+echo "  - Database: dating_app"
+echo "  - User: devuser"
+echo "  - Password: Manuela2011!"
 echo ""
-echo "Vous pouvez maintenant démarrer le backend avec:"
-echo "  cd backend-nodejs && npm run dev"
+echo "Next steps:"
+echo "  1. Start backend: cd ../.. && npm run dev"
+echo "  2. Or add test data: ./seed-db.sh"
+echo ""

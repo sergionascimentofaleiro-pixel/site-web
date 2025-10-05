@@ -102,15 +102,37 @@
       </div>
 
       <!-- Interests -->
-      <div class="form-group">
-        <label for="interests">{{ 'profile.interests' | translate }}</label>
-        <input
-          type="text"
-          id="interests"
-          [(ngModel)]="interests"
-          name="interests"
-          [placeholder]="'profile.interestsPlaceholder' | translate"
-        />
+      <div class="form-group interests-section">
+        <label>{{ 'profile.interests' | translate }}</label>
+        <p class="interests-hint">{{ 'profile.selectInterests' | translate }}</p>
+
+        @for (category of interestCategories(); track category.category_id) {
+          <div class="interest-category">
+            <h3 class="category-title">
+              <span class="category-icon">{{ category.category_icon }}</span>
+              {{ category.category_name }}
+            </h3>
+            <div class="interest-tags">
+              @for (interest of category.interests; track interest.interest_id) {
+                <button
+                  type="button"
+                  class="interest-tag"
+                  [class.selected]="isInterestSelected(interest.interest_id)"
+                  (click)="toggleInterest(interest.interest_id)"
+                >
+                  <span class="interest-icon">{{ interest.interest_icon }}</span>
+                  {{ interest.interest_name }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (selectedInterestIds().length > 0) {
+          <p class="selected-count">
+            {{ selectedInterestIds().length }} {{ 'profile.interestsSelected' | translate }}
+          </p>
+        }
       </div>
 
       <button type="submit" class="btn-primary" [disabled]="isLoading()">

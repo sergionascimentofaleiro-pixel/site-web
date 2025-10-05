@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Profile as ProfileService, ProfileData } from '../../services/profile';
+import { InterestService, InterestCategory } from '../../services/interest';
 import { TranslateModule } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 
@@ -18,8 +19,11 @@ export class Profile implements OnInit {
   lookingFor = signal<'male' | 'female' | 'other' | 'all'>('female');
   bio = signal('');
   location = signal('');
-  interests = signal('');
   profilePhoto = signal('');
+
+  // Interest selection
+  interestCategories = signal<InterestCategory[]>([]);
+  selectedInterestIds = signal<number[]>([]);
 
   errorMessage = signal('');
   successMessage = signal('');
@@ -28,11 +32,24 @@ export class Profile implements OnInit {
 
   constructor(
     private profileService: ProfileService,
+    private interestService: InterestService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.loadInterests();
     this.loadProfile();
+  }
+
+  loadInterests(): void {
+    this.interestService.getAllInterests().subscribe({
+      next: (categories) => {
+        this.interestCategories.set(categories);
+      },
+      error: (error) => {
+        console.error('Error loading interests:', error);
+      }
+    });
   }
 
   loadProfile(): void {
@@ -45,14 +62,45 @@ export class Profile implements OnInit {
         this.lookingFor.set(profile.looking_for);
         this.bio.set(profile.bio || '');
         this.location.set(profile.location || '');
-        this.interests.set(profile.interests || '');
         this.profilePhoto.set(profile.profile_photo || '');
+
+        // Load selected interests
+        this.loadMyInterests();
       },
       error: () => {
         // Profile doesn't exist yet, that's okay
         this.isNewProfile.set(true);
       }
     });
+  }
+
+  loadMyInterests(): void {
+    this.interestService.getMyInterests().subscribe({
+      next: (interests) => {
+        const ids = interests.map(i => i.interest_id);
+        this.selectedInterestIds.set(ids);
+      },
+      error: (error) => {
+        console.error('Error loading my interests:', error);
+      }
+    });
+  }
+
+  toggleInterest(interestId: number): void {
+    const current = this.selectedInterestIds();
+    const index = current.indexOf(interestId);
+
+    if (index > -1) {
+      // Remove interest
+      this.selectedInterestIds.set(current.filter(id => id !== interestId));
+    } else {
+      // Add interest
+      this.selectedInterestIds.set([...current, interestId]);
+    }
+  }
+
+  isInterestSelected(interestId: number): boolean {
+    return this.selectedInterestIds().includes(interestId);
   }
 
   onSubmit(): void {
@@ -72,17 +120,26 @@ export class Profile implements OnInit {
       looking_for: this.lookingFor(),
       bio: this.bio(),
       location: this.location(),
-      interests: this.interests(),
+      interests: '', // Keep empty for compatibility
       profile_photo: this.profilePhoto()
     };
 
     this.profileService.createOrUpdateProfile(profileData).subscribe({
       next: () => {
-        this.successMessage.set('Profile saved successfully!');
-        this.isLoading.set(false);
-        setTimeout(() => {
-          this.router.navigate(['/discover']);
-        }, 1500);
+        // Save interests separately
+        this.interestService.setMyInterests(this.selectedInterestIds()).subscribe({
+          next: () => {
+            this.successMessage.set('Profile saved successfully!');
+            this.isLoading.set(false);
+            setTimeout(() => {
+              this.router.navigate(['/discover']);
+            }, 1500);
+          },
+          error: (error) => {
+            this.errorMessage.set(error.error?.error || 'Failed to save interests');
+            this.isLoading.set(false);
+          }
+        });
       },
       error: (error) => {
         this.errorMessage.set(error.error?.error || 'Failed to save profile');
