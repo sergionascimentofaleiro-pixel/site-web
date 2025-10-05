@@ -79,6 +79,18 @@
     "sendMessage": "Enviar un mensaje",
     "nearby": "Cerca"
   },
+  "matches": {
+    "title": "Mis Matches",
+    "loading": "Cargando tus matches...",
+    "errorLoading": "Error al cargar los matches",
+    "noMatches": "No hay matches todavía",
+    "noMatchesText": "¡Empieza a deslizar para encontrar tu match perfecto!",
+    "startSwiping": "Empezar a deslizar",
+    "match": "match",
+    "matchesPlural": "matches",
+    "message": "Mensaje",
+    "unmatch": "Eliminar match"
+  },
   "common": {
     "error": "Ocurrió un error",
     "success": "Éxito",

@@ -1,1 +1,67 @@
-<p>matches works!</p>
+<div class="matches-container">
+  <h1>{{ 'matches.title' | translate }}</h1>
+
+  @if (isLoading()) {
+    <div class="loading">
+      <p>{{ 'matches.loading' | translate }}</p>
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-message">
+      {{ errorMessage() | translate }}
+    </div>
+  }
+
+  @if (!isLoading() && matches().length === 0) {
+    <div class="no-matches">
+      <div class="empty-state">
+        <span class="empty-icon">💔</span>
+        <h2>{{ 'matches.noMatches' | translate }}</h2>
+        <p>{{ 'matches.noMatchesText' | translate }}</p>
+        <a routerLink="/discover" class="btn-primary">
+          {{ 'matches.startSwiping' | translate }}
+        </a>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && matches().length > 0) {
+    <div class="matches-list">
+      <p class="matches-count">
+        {{ matches().length }} {{ matches().length === 1 ? ('matches.match' | translate) : ('matches.matchesPlural' | translate) }}
+      </p>
+
+      <div class="matches-grid">
+        @for (match of matches(); track match.matchId) {
+          <div class="match-card">
+            <div class="match-photo">
+              @if (match.otherUser.photo) {
+                <img [src]="match.otherUser.photo" [alt]="match.otherUser.name" />
+              } @else {
+                <div class="no-photo">{{ match.otherUser.name.charAt(0) }}</div>
+              }
+            </div>
+
+            <div class="match-info">
+              <h3 class="match-name">{{ match.otherUser.name }}</h3>
+              <p class="match-time">{{ getTimeAgo(match.matchedAt) }}</p>
+            </div>
+
+            <div class="match-actions">
+              <a [routerLink]="['/chat', match.matchId]" class="btn-message">
+                💬 {{ 'matches.message' | translate }}
+              </a>
+              <button
+                class="btn-unmatch"
+                (click)="unmatch(match.matchId, match.otherUser.name)"
+                [title]="'matches.unmatch' | translate">
+                ✖️
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

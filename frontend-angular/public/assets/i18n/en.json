@@ -79,6 +79,18 @@
     "sendMessage": "Send a Message",
     "nearby": "Nearby"
   },
+  "matches": {
+    "title": "My Matches",
+    "loading": "Loading your matches...",
+    "errorLoading": "Error loading matches",
+    "noMatches": "No matches yet",
+    "noMatchesText": "Start swiping to find your perfect match!",
+    "startSwiping": "Start Swiping",
+    "match": "match",
+    "matchesPlural": "matches",
+    "message": "Message",
+    "unmatch": "Unmatch"
+  },
   "common": {
     "error": "An error occurred",
     "success": "Success",
