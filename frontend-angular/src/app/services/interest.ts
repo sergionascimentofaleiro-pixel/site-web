@@ -32,12 +32,14 @@ export class InterestService {
   private http = inject(HttpClient);
   private apiUrl = 'http://localhost:3000/api/interests';
 
-  getAllInterests(): Observable<InterestCategory[]> {
-    return this.http.get<InterestCategory[]>(`${this.apiUrl}/all`);
+  getAllInterests(language?: string): Observable<InterestCategory[]> {
+    const lang = language || localStorage.getItem('language') || 'en';
+    return this.http.get<InterestCategory[]>(`${this.apiUrl}/all?lang=${lang}`);
   }
 
-  getMyInterests(): Observable<ProfileInterest[]> {
-    return this.http.get<ProfileInterest[]>(`${this.apiUrl}/my`);
+  getMyInterests(language?: string): Observable<ProfileInterest[]> {
+    const lang = language || localStorage.getItem('language') || 'en';
+    return this.http.get<ProfileInterest[]>(`${this.apiUrl}/my?lang=${lang}`);
   }
 
   setMyInterests(interestIds: number[]): Observable<{ message: string }> {

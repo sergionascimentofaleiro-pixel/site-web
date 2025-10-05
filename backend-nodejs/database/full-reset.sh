@@ -84,6 +84,30 @@ else
     exit 1
 fi
 
+# Step 4.5: Create interest translation tables
+echo ""
+echo "4️⃣.5 Creating interest translation tables..."
+mysql -uroot -p$ROOT_PASS $DB_NAME < interests-translations-schema.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Interest translation tables created successfully"
+else
+    echo "❌ Error creating translation tables"
+    exit 1
+fi
+
+# Step 4.6: Seed interest translations
+echo ""
+echo "4️⃣.6 Seeding interest translations (en, fr, es, pt)..."
+mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < interests-translations-seed.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Interest translations seeded successfully (4 languages)"
+else
+    echo "❌ Error seeding translations"
+    exit 1
+fi
+
 # Step 5: Seed test accounts and profiles
 echo ""
 echo "5️⃣  Seeding test accounts and profiles (40 users)..."
@@ -121,6 +145,7 @@ SELECT
     (SELECT COUNT(*) FROM profiles) as 'Profiles',
     (SELECT COUNT(*) FROM interest_categories) as 'Interest Categories',
     (SELECT COUNT(*) FROM interests) as 'Interests',
+    (SELECT COUNT(*) FROM interest_translations) as 'Interest Translations',
     (SELECT COUNT(*) FROM profile_interests) as 'Profile-Interest Links';
 EOF
 

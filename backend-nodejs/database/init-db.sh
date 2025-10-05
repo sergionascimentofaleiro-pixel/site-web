@@ -60,6 +60,28 @@ else
 fi
 
 echo ""
+echo "🌍 Creating interest translation tables..."
+mysql -uroot -p$ROOT_PASS dating_app < interests-translations-schema.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Interest translation tables created"
+else
+    echo "❌ Error creating translation tables"
+    exit 1
+fi
+
+echo ""
+echo "🌱 Seeding interest translations (en, fr, es, pt)..."
+mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 dating_app < interests-translations-seed.sql
+
+if [ $? -eq 0 ]; then
+    echo "✅ Interest translations seeded (4 languages)"
+else
+    echo "❌ Error seeding translations"
+    exit 1
+fi
+
+echo ""
 echo "========================================="
 echo "  ✅ Database Initialized!"
 echo "========================================="

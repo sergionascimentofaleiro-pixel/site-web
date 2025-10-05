@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Profile as ProfileService, ProfileData } from '../../services/profile';
 import { InterestService, InterestCategory } from '../../services/interest';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -33,16 +33,29 @@ export class Profile implements OnInit {
   constructor(
     private profileService: ProfileService,
     private interestService: InterestService,
-    private router: Router
+    private router: Router,
+    private translate: TranslateService
   ) {}
+
+  private get currentLanguage(): string {
+    return this.translate.currentLang || 'en';
+  }
 
   ngOnInit(): void {
     this.loadInterests();
     this.loadProfile();
+
+    // Reload interests when language changes
+    this.translate.onLangChange.subscribe(() => {
+      this.loadInterests();
+      if (!this.isNewProfile()) {
+        this.loadMyInterests();
+      }
+    });
   }
 
   loadInterests(): void {
-    this.interestService.getAllInterests().subscribe({
+    this.interestService.getAllInterests(this.currentLanguage).subscribe({
       next: (categories) => {
         this.interestCategories.set(categories);
       },
@@ -75,7 +88,7 @@ export class Profile implements OnInit {
   }
 
   loadMyInterests(): void {
-    this.interestService.getMyInterests().subscribe({
+    this.interestService.getMyInterests(this.currentLanguage).subscribe({
       next: (interests) => {
         const ids = interests.map(i => i.interest_id);
         this.selectedInterestIds.set(ids);

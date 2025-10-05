@@ -2,29 +2,35 @@ const db = require('../config/database');
 
 class Interest {
   // Get all interest categories with their interests
-  static async getAllCategoriesWithInterests() {
+  static async getAllCategoriesWithInterests(language = 'en') {
     const [categories] = await db.query(`
       SELECT
         ic.category_id,
-        ic.category_name,
+        COALESCE(ict.translated_name, ic.category_name) as category_name,
         ic.category_icon,
         ic.display_order as category_order
       FROM interest_categories ic
+      LEFT JOIN interest_category_translations ict
+        ON ic.category_id = ict.category_id
+        AND ict.language_code = ?
       ORDER BY ic.display_order
-    `);
+    `, [language]);
 
     // Get all interests for each category
     for (let category of categories) {
       const [interests] = await db.query(`
         SELECT
-          interest_id,
-          interest_name,
-          interest_icon,
-          display_order
-        FROM interests
-        WHERE category_id = ?
-        ORDER BY display_order
-      `, [category.category_id]);
+          i.interest_id,
+          COALESCE(it.translated_name, i.interest_name) as interest_name,
+          i.interest_icon,
+          i.display_order
+        FROM interests i
+        LEFT JOIN interest_translations it
+          ON i.interest_id = it.interest_id
+          AND it.language_code = ?
+        WHERE i.category_id = ?
+        ORDER BY i.display_order
+      `, [language, category.category_id]);
 
       category.interests = interests;
     }
@@ -33,20 +39,26 @@ class Interest {
   }
 
   // Get interests for a specific profile
-  static async getProfileInterests(profileId) {
+  static async getProfileInterests(profileId, language = 'en') {
     const [interests] = await db.query(`
       SELECT
         i.interest_id,
-        i.interest_name,
+        COALESCE(it.translated_name, i.interest_name) as interest_name,
         i.interest_icon,
-        ic.category_name,
+        COALESCE(ict.translated_name, ic.category_name) as category_name,
         ic.category_icon
       FROM profile_interests pi
       JOIN interests i ON pi.interest_id = i.interest_id
       JOIN interest_categories ic ON i.category_id = ic.category_id
+      LEFT JOIN interest_translations it
+        ON i.interest_id = it.interest_id
+        AND it.language_code = ?
+      LEFT JOIN interest_category_translations ict
+        ON ic.category_id = ict.category_id
+        AND ict.language_code = ?
       WHERE pi.profile_id = ?
       ORDER BY ic.display_order, i.display_order
-    `, [profileId]);
+    `, [language, language, profileId]);
 
     return interests;
   }

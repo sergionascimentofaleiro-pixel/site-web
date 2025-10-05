@@ -18,8 +18,9 @@ Ce script va :
 2. ✅ Créer toutes les tables (users, profiles, likes, matches, messages)
 3. ✅ Créer les tables d'intérêts (interest_categories, interests, profile_interests)
 4. ✅ Insérer 10 catégories d'intérêts et 100 intérêts prédéfinis
-5. ✅ Créer 40 comptes de test (20 hommes, 20 femmes)
-6. ✅ Assigner des intérêts aléatoires à chaque profil
+5. ✅ Créer les tables de traductions et insérer les traductions (en, fr, es, pt)
+6. ✅ Créer 40 comptes de test (20 hommes, 20 femmes)
+7. ✅ Assigner des intérêts aléatoires à chaque profil
 
 ### Option 2: Installation propre (sans données de test)
 
@@ -45,11 +46,13 @@ cd backend-nodejs/database
 
 - **`schema.sql`** - Tables principales (users, profiles, likes, matches, messages)
 - **`interests-schema.sql`** - Tables pour les intérêts (interest_categories, interests, profile_interests)
+- **`interests-translations-schema.sql`** - Tables pour les traductions multilingues
 
-### Données de test
+### Données de seed
 
-- **`seed-data.sql`** - 40 comptes utilisateurs avec profils complets
 - **`interests-seed.sql`** - 10 catégories et 100 intérêts prédéfinis
+- **`interests-translations-seed.sql`** - Traductions des intérêts (en, fr, es, pt)
+- **`seed-data.sql`** - 40 comptes utilisateurs avec profils complets
 - **`assign-random-interests.sql`** - Assigne des intérêts aléatoires aux profils
 
 ### Scripts shell
@@ -93,6 +96,29 @@ Voir `TEST-ACCOUNTS.md` pour la liste complète.
 
 **Total : 100 intérêts prédéfinis**
 
+### 🌍 Support multilingue
+
+Les intérêts sont traduits dans 4 langues :
+- 🇬🇧 **Anglais** (en) - langue par défaut
+- 🇫🇷 **Français** (fr)
+- 🇪🇸 **Espagnol** (es)
+- 🇵🇹 **Portugais** (pt)
+
+**Tables de traduction :**
+- `interest_category_translations` - Noms des catégories traduits
+- `interest_translations` - Noms des intérêts traduits
+
+**Utilisation API :**
+```bash
+# Récupérer les intérêts en français
+GET /api/interests/all?lang=fr
+
+# Récupérer les intérêts utilisateur en espagnol
+GET /api/interests/my?lang=es
+```
+
+Si aucune langue n'est spécifiée, l'anglais (en) est utilisé par défaut.
+
 ## 🔧 Utilisation avancée
 
 ### Réinitialiser seulement les intérêts
@@ -120,6 +146,7 @@ mysql -uroot -pManuela2011 dating_app -e "
     (SELECT COUNT(*) FROM profiles) as Profiles,
     (SELECT COUNT(*) FROM interest_categories) as Categories,
     (SELECT COUNT(*) FROM interests) as Interests,
+    (SELECT COUNT(*) FROM interest_translations) as Translations,
     (SELECT COUNT(*) FROM profile_interests) as Assignments;
 "
 ```

@@ -3,7 +3,8 @@ const Interest = require('../models/Interest');
 // Get all interest categories with their interests
 exports.getAllInterests = async (req, res) => {
   try {
-    const categories = await Interest.getAllCategoriesWithInterests();
+    const language = req.query.lang || 'en';
+    const categories = await Interest.getAllCategoriesWithInterests(language);
     res.json(categories);
   } catch (error) {
     console.error('Get interests error:', error);
@@ -15,6 +16,7 @@ exports.getAllInterests = async (req, res) => {
 exports.getMyInterests = async (req, res) => {
   try {
     const userId = req.user.userId;
+    const language = req.query.lang || 'en';
 
     // First get the profile id
     const Profile = require('../models/Profile');
@@ -24,7 +26,7 @@ exports.getMyInterests = async (req, res) => {
       return res.status(404).json({ error: 'Profile not found' });
     }
 
-    const interests = await Interest.getProfileInterests(profile.id);
+    const interests = await Interest.getProfileInterests(profile.id, language);
     res.json(interests);
   } catch (error) {
     console.error('Get my interests error:', error);
