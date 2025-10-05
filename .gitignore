@@ -1,0 +1,19 @@
+# Node modules
+/**/node_modules/
+/**/package-lock.json
+
+# Environment variables
+**/.env
+
+# Build outputs
+**/dist/
+**/build/
+**/.angular/
+
+# IDE
+**/.vscode/
+**/.idea/
+
+# OS
+.DS_Store
+Thumbs.db
