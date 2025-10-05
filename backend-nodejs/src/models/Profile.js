@@ -39,6 +39,13 @@ class Profile {
   }
 
   static async getMatches(userId, limit = 10, language = 'en') {
+    // First, get the current user's profile to check their preferences
+    const myProfile = await this.findByUserId(userId);
+
+    if (!myProfile) {
+      return [];
+    }
+
     // Get profiles that match user's preferences and haven't been liked/passed yet
     const [rows] = await db.execute(
       `SELECT p.*, u.id as user_id,
@@ -58,13 +65,16 @@ class Profile {
          AND it.language_code = ?
        WHERE p.user_id != ?
        AND u.is_active = TRUE
+       AND (
+         ? = 'all' OR p.gender = ?
+       )
        AND p.id NOT IN (
          SELECT to_user_id FROM likes WHERE from_user_id = ?
        )
        GROUP BY p.id, u.id
        ORDER BY RAND()
        LIMIT ?`,
-      [language, userId, userId, limit]
+      [language, userId, myProfile.looking_for, myProfile.looking_for, userId, limit]
     );
     return rows;
   }

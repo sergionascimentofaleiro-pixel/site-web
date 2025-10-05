@@ -22,6 +22,16 @@
       <div class="profile-info">
         <h2>{{ currentProfile()!.first_name }}, {{ getAge(currentProfile()!.birth_date) }}</h2>
 
+        <p class="gender-info">
+          @if (currentProfile()!.gender === 'male') {
+            👨 {{ 'profile.male' | translate }}
+          } @else if (currentProfile()!.gender === 'female') {
+            👩 {{ 'profile.female' | translate }}
+          } @else {
+            🧑 {{ 'profile.other' | translate }}
+          }
+        </p>
+
         @if (currentProfile()?.location) {
           <p class="location">📍 {{ currentProfile()!.location }}</p>
         }
