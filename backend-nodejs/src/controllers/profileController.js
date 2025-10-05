@@ -5,32 +5,51 @@ const Like = require('../models/Like');
 exports.createProfile = async (req, res) => {
   try {
     const userId = req.user.userId;
-    const { firstName, birthDate, gender, lookingFor, bio, location, interests, profilePhoto } = req.body;
+
+    // Accept both camelCase and snake_case
+    const firstName = req.body.firstName || req.body.first_name;
+    const birthDate = req.body.birthDate || req.body.birth_date;
+    const gender = req.body.gender;
+    const lookingFor = req.body.lookingFor || req.body.looking_for;
+    const bio = req.body.bio;
+    const location = req.body.location;
+    const interests = req.body.interests;
+    const profilePhoto = req.body.profilePhoto || req.body.profile_photo;
+
+    console.log('Received birthDate from frontend:', birthDate);
 
     // Validate required fields
     if (!firstName || !birthDate || !gender || !lookingFor) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Format birthDate to ensure it's stored correctly (YYYY-MM-DD only, no time/timezone)
+    // This prevents MySQL from converting it to UTC timestamp
+    const formattedBirthDate = birthDate.split('T')[0]; // Remove time part if present
+
     // Check if profile exists
     const existingProfile = await Profile.findByUserId(userId);
 
+    const profileData = {
+      firstName,
+      birthDate: formattedBirthDate,
+      gender,
+      lookingFor,
+      bio,
+      location,
+      interests,
+      profilePhoto
+    };
+
     if (existingProfile) {
       // Update existing profile
-      await Profile.update(userId, req.body);
+      await Profile.update(userId, profileData);
       res.json({ message: 'Profile updated successfully' });
     } else {
       // Create new profile
       const profileId = await Profile.create({
         userId,
-        firstName,
-        birthDate,
-        gender,
-        lookingFor,
-        bio,
-        location,
-        interests,
-        profilePhoto
+        ...profileData
       });
       res.status(201).json({ message: 'Profile created successfully', profileId });
     }
@@ -48,6 +67,15 @@ exports.getMyProfile = async (req, res) => {
 
     if (!profile) {
       return res.status(404).json({ error: 'Profile not found' });
+    }
+
+    // Format birth_date to YYYY-MM-DD for HTML date input
+    if (profile.birth_date) {
+      console.log('Raw birth_date from DB:', profile.birth_date);
+      // With dateStrings: true, it's already a string like "1979-06-13T00:00:00.000Z"
+      // Just extract the date part
+      profile.birth_date = profile.birth_date.split('T')[0];
+      console.log('Formatted birth_date sent to frontend:', profile.birth_date);
     }
 
     res.json(profile);

@@ -21,16 +21,25 @@ source /media/nascimento/data/vscode-workspace/backend-nodejs/database/setup.sql
 source /media/nascimento/data/vscode-workspace/backend-nodejs/database/schema.sql
 ```
 
-### Ou manuellement :
+### Ou utiliser les scripts automatiques :
 
-```sql
-CREATE DATABASE dating_app CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS 'devuser'@'localhost' IDENTIFIED BY 'Manuela2011!';
-GRANT ALL PRIVILEGES ON dating_app.* TO 'devuser'@'localhost';
-FLUSH PRIVILEGES;
-USE dating_app;
--- Puis copier/coller le contenu de schema.sql
+```bash
+cd backend-nodejs/database
+
+# Initialisation complète (création DB + tables)
+./init-db.sh
+
+# Ou réinitialisation (supprime et recrée tout)
+./reset-db.sh
+
+# Puis injecter des données de test (optionnel)
+./seed-db.sh
 ```
+
+Le script `seed-db.sh` crée **40 profils de test** :
+- 20 hommes (john.smith@test.com, michael.jones@test.com, etc.)
+- 20 femmes (emma.johnson@test.com, olivia.williams@test.com, etc.)
+- Mot de passe pour tous : **Test123!**
 
 ## 2. Configuration du Backend
 

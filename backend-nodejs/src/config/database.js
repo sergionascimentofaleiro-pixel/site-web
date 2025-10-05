@@ -9,7 +9,9 @@ const pool = mysql.createPool({
   port: process.env.DB_PORT,
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  timezone: '+00:00', // Store dates as-is without timezone conversion
+  dateStrings: true   // Return dates as strings instead of Date objects
 });
 
 // Test connection
