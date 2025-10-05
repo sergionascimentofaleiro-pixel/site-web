@@ -37,6 +37,8 @@ export class Profile implements OnInit {
   selectedStateId = signal<number | null>(null);
   selectedCityId = signal<number | null>(null);
   countryHasStates = signal(false);
+  citySearchTerm = signal('');
+  selectedCityName = signal('');
 
   errorMessage = signal('');
   successMessage = signal('');
@@ -107,13 +109,13 @@ export class Profile implements OnInit {
 
               if (profile.city_id) {
                 setTimeout(() => {
-                  this.selectedCityId.set(profile.city_id!);
+                  this.loadCityName(profile.city_id!);
                 }, 200);
               }
             }, 200);
           } else if (profile.city_id) {
             setTimeout(() => {
-              this.selectedCityId.set(profile.city_id!);
+              this.loadCityName(profile.city_id!);
             }, 200);
           }
         }
@@ -155,6 +157,8 @@ export class Profile implements OnInit {
     this.selectedCountryId.set(countryId);
     this.selectedStateId.set(null);
     this.selectedCityId.set(null);
+    this.citySearchTerm.set('');
+    this.selectedCityName.set('');
     this.states.set([]);
     this.cities.set([]);
 
@@ -171,39 +175,60 @@ export class Profile implements OnInit {
           console.error('Error loading states:', error);
         }
       });
-    } else {
-      // Load cities directly for countries without states
-      this.locationService.getCities(countryId).subscribe({
-        next: (cities) => {
-          this.cities.set(cities);
-        },
-        error: (error) => {
-          console.error('Error loading cities:', error);
-        }
-      });
     }
   }
 
   onStateChange(stateId: number): void {
     this.selectedStateId.set(stateId);
     this.selectedCityId.set(null);
+    this.citySearchTerm.set('');
+    this.selectedCityName.set('');
     this.cities.set([]);
-
-    const countryId = this.selectedCountryId();
-    if (countryId) {
-      this.locationService.getCities(countryId, stateId).subscribe({
-        next: (cities) => {
-          this.cities.set(cities);
-        },
-        error: (error) => {
-          console.error('Error loading cities:', error);
-        }
-      });
-    }
   }
 
-  onCityChange(cityId: number): void {
-    this.selectedCityId.set(cityId);
+  onCitySearchChange(searchTerm: string): void {
+    this.citySearchTerm.set(searchTerm);
+
+    if (searchTerm.length < 2) {
+      this.cities.set([]);
+      return;
+    }
+
+    const countryId = this.selectedCountryId();
+    const stateId = this.selectedStateId();
+
+    if (!countryId) {
+      return;
+    }
+
+    this.locationService.searchCities(searchTerm, countryId, stateId || undefined).subscribe({
+      next: (cities) => {
+        this.cities.set(cities);
+      },
+      error: (error) => {
+        console.error('Error searching cities:', error);
+      }
+    });
+  }
+
+  onCitySelect(city: City): void {
+    this.selectedCityId.set(city.id);
+    this.selectedCityName.set(city.name);
+    this.citySearchTerm.set(city.name);
+    this.cities.set([]); // Hide dropdown
+  }
+
+  loadCityName(cityId: number): void {
+    this.locationService.getCityDetails(cityId).subscribe({
+      next: (cityDetails) => {
+        this.selectedCityId.set(cityId);
+        this.selectedCityName.set(cityDetails.city_name);
+        this.citySearchTerm.set(cityDetails.city_name);
+      },
+      error: (error) => {
+        console.error('Error loading city name:', error);
+      }
+    });
   }
 
   toggleInterest(interestId: number): void {

@@ -160,21 +160,30 @@
         </div>
       }
 
-      <!-- City -->
-      @if (cities().length > 0) {
-        <div class="form-group">
-          <label for="city">{{ 'profile.city' | translate }} *</label>
-          <select
-            id="city"
-            [ngModel]="selectedCityId()"
-            (ngModelChange)="onCityChange($event)"
-            name="city"
-            required>
-            <option [ngValue]="null">{{ 'profile.selectCity' | translate }}</option>
-            @for (city of cities(); track city.id) {
-              <option [ngValue]="city.id">{{ city.name }}</option>
-            }
-          </select>
+      <!-- City (Autocomplete) -->
+      @if (selectedCountryId() !== null && (countryHasStates() === false || selectedStateId() !== null)) {
+        <div class="form-group city-autocomplete">
+          <label for="citySearch">{{ 'profile.city' | translate }} *</label>
+          <input
+            type="text"
+            id="citySearch"
+            [ngModel]="citySearchTerm()"
+            (ngModelChange)="onCitySearchChange($event)"
+            name="citySearch"
+            [placeholder]="'profile.searchCity' | translate"
+            autocomplete="off"
+            required
+          />
+          @if (cities().length > 0 && citySearchTerm().length >= 2) {
+            <ul class="city-dropdown">
+              @for (city of cities(); track city.id) {
+                <li (click)="onCitySelect(city)">{{ city.name }}</li>
+              }
+            </ul>
+          }
+          @if (selectedCityName()) {
+            <small class="selected-city">{{ 'profile.selectedCity' | translate }}: {{ selectedCityName() }}</small>
+          }
         </div>
       }
 

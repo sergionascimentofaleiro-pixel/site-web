@@ -62,6 +62,30 @@ class Location {
     return rows;
   }
 
+  // Search cities by name with optional country/state filter (autocomplete)
+  static async searchCities(searchTerm, countryId = null, stateId = null, limit = 500) {
+    let query = `SELECT id, name FROM cities WHERE name LIKE ?`;
+    const params = [`${searchTerm}%`];
+
+    if (countryId) {
+      query += ` AND country_id = ?`;
+      params.push(countryId);
+    }
+
+    if (stateId) {
+      query += ` AND state_id = ?`;
+      params.push(stateId);
+    } else if (countryId) {
+      query += ` AND state_id IS NULL`;
+    }
+
+    query += ` ORDER BY name LIMIT ?`;
+    params.push(limit);
+
+    const [rows] = await db.query(query, params);
+    return rows;
+  }
+
   // Get city details with country and state
   static async getCityDetails(cityId) {
     const [rows] = await db.query(

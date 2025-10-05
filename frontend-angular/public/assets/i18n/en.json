@@ -49,6 +49,8 @@
     "selectCountry": "Select a country",
     "selectState": "Select a state/province",
     "selectCity": "Select a city",
+    "searchCity": "Type to search for a city...",
+    "selectedCity": "Selected city",
     "bio": "Bio",
     "bioPlaceholder": "Tell us about yourself...",
     "interests": "Interests",

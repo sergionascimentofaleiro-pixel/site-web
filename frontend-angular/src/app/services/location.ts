@@ -59,4 +59,15 @@ export class LocationService {
   getCityDetails(cityId: number): Observable<CityDetails> {
     return this.http.get<CityDetails>(`${this.apiUrl}/cities/${cityId}`);
   }
+
+  searchCities(searchTerm: string, countryId?: number, stateId?: number, limit: number = 500): Observable<City[]> {
+    let url = `${this.apiUrl}/cities/search?q=${encodeURIComponent(searchTerm)}&limit=${limit}`;
+    if (countryId) {
+      url += `&countryId=${countryId}`;
+    }
+    if (stateId) {
+      url += `&stateId=${stateId}`;
+    }
+    return this.http.get<City[]>(url);
+  }
 }

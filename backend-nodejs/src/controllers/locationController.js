@@ -65,3 +65,26 @@ exports.getCityDetails = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+// Search cities (autocomplete)
+exports.searchCities = async (req, res) => {
+  try {
+    const { q, countryId, stateId, limit } = req.query;
+
+    if (!q || q.length < 1) {
+      return res.json([]);
+    }
+
+    const cities = await Location.searchCities(
+      q,
+      countryId || null,
+      stateId || null,
+      limit ? parseInt(limit) : 500
+    );
+
+    res.json(cities);
+  } catch (error) {
+    console.error('Search cities error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
