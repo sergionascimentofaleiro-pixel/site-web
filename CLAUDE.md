@@ -4,12 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Structure
 
-This is a full-stack web application with two main components:
+This is a full-stack **dating application** (similar to Tinder) with two main components:
 
 - **frontend-angular/**: Angular 20 frontend application (standalone components architecture)
-- **backend-nodejs/**: Express.js backend API
+- **backend-nodejs/**: Express.js backend API with MariaDB
 
 The backend and frontend are separate applications that run independently and communicate via HTTP.
+
+### Database Setup
+
+The application uses MariaDB. To set up:
+```bash
+mysql -u root -p
+source backend-nodejs/database/setup.sql
+source backend-nodejs/database/schema.sql
+```
+
+See `SETUP.md` for complete installation instructions.
 
 ## Development Commands
 
@@ -52,13 +63,20 @@ ng generate --help                      # List available schematics
 ### Backend Architecture
 
 The backend follows an MVC-like structure with directories for:
-- `src/routes/` - API route definitions
+- `src/routes/` - API route definitions (auth, profile, match, message)
 - `src/controllers/` - Request handlers and business logic
-- `src/models/` - Data models
-- `src/middleware/` - Express middleware
+- `src/models/` - Data models (User, Profile, Like, Match, Message)
+- `src/middleware/` - Express middleware (JWT authentication)
+- `src/config/` - Database connection configuration
 - `src/server.js` - Application entry point with Express configuration
 
-Currently implements a basic health check endpoint at `/api/health`. CORS is enabled for cross-origin requests.
+**API Endpoints:**
+- Authentication: `/api/auth/*` (register, login, me)
+- Profiles: `/api/profile/*` (CRUD, potential matches, swipe)
+- Matches: `/api/matches/*` (list, unmatch)
+- Messages: `/api/messages/*` (send, conversations, unread count)
+
+All protected routes require JWT Bearer token authentication. CORS is enabled for cross-origin requests.
 
 ### Frontend Architecture
 
@@ -67,6 +85,20 @@ Angular 20 application using:
 - **Signals** for reactive state management
 - **SCSS** for styling (configured project-wide)
 - **Router** for navigation via `app.routes.ts`
+- **HTTP Interceptor** for automatic JWT token injection
+
+**Services:**
+- `Auth` - Authentication (login, register, getCurrentUser)
+- `Profile` - Profile management and swiping
+- `Match` - Match management
+- `Message` - Messaging functionality
+
+**Components:**
+- Login/Register - Authentication forms
+- Profile - User profile creation/editing
+- Discover - Swipe interface (Tinder-like card system)
+- Matches - List of matches
+- Chat - One-on-one messaging
 
 Component configuration:
 - Component prefix: `app-`
@@ -77,6 +109,7 @@ Application configuration is centralized in `src/app/app.config.ts` with provide
 - Zone change detection (with event coalescing)
 - Router
 - Global error listeners
+- HTTP Client with auth interceptor
 
 ### Code Style
 

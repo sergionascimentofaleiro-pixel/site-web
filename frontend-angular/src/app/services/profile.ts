@@ -1,0 +1,48 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+
+export interface ProfileData {
+  id?: number;
+  user_id?: number;
+  first_name: string;
+  birth_date: string;
+  gender: 'male' | 'female' | 'other';
+  looking_for: 'male' | 'female' | 'other' | 'all';
+  bio?: string;
+  location?: string;
+  interests?: string;
+  profile_photo?: string;
+}
+
+export interface PotentialMatch extends ProfileData {
+  user_id: number;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class Profile {
+  private readonly apiUrl = 'http://localhost:3000/api/profile';
+
+  constructor(private http: HttpClient) {}
+
+  createOrUpdateProfile(profileData: ProfileData): Observable<any> {
+    return this.http.post(`${this.apiUrl}`, profileData);
+  }
+
+  getMyProfile(): Observable<ProfileData> {
+    return this.http.get<ProfileData>(`${this.apiUrl}/me`);
+  }
+
+  getPotentialMatches(limit: number = 10): Observable<PotentialMatch[]> {
+    return this.http.get<PotentialMatch[]>(`${this.apiUrl}/potential-matches?limit=${limit}`);
+  }
+
+  swipe(targetUserId: number, action: 'like' | 'pass'): Observable<{ message: string; isMatch: boolean }> {
+    return this.http.post<{ message: string; isMatch: boolean }>(`${this.apiUrl}/swipe`, {
+      targetUserId,
+      action
+    });
+  }
+}
