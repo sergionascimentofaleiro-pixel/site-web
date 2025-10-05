@@ -90,8 +90,9 @@ exports.getPotentialMatches = async (req, res) => {
   try {
     const userId = req.user.userId;
     const limit = parseInt(req.query.limit) || 10;
+    const language = req.query.lang || 'en';
 
-    const matches = await Profile.getMatches(userId, limit);
+    const matches = await Profile.getMatches(userId, limit, language);
     res.json(matches);
   } catch (error) {
     console.error('Get matches error:', error);

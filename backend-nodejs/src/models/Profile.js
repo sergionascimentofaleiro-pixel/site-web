@@ -38,20 +38,33 @@ class Profile {
     );
   }
 
-  static async getMatches(userId, limit = 10) {
+  static async getMatches(userId, limit = 10, language = 'en') {
     // Get profiles that match user's preferences and haven't been liked/passed yet
     const [rows] = await db.execute(
-      `SELECT p.*, u.id as user_id
+      `SELECT p.*, u.id as user_id,
+       GROUP_CONCAT(
+         CONCAT(
+           COALESCE(it.translated_name, i.interest_name),
+           '|',
+           i.interest_icon
+         ) SEPARATOR '||'
+       ) as interests_with_icons
        FROM profiles p
        JOIN users u ON p.user_id = u.id
+       LEFT JOIN profile_interests pi ON p.id = pi.profile_id
+       LEFT JOIN interests i ON pi.interest_id = i.interest_id
+       LEFT JOIN interest_translations it
+         ON i.interest_id = it.interest_id
+         AND it.language_code = ?
        WHERE p.user_id != ?
        AND u.is_active = TRUE
        AND p.id NOT IN (
          SELECT to_user_id FROM likes WHERE from_user_id = ?
        )
+       GROUP BY p.id, u.id
        ORDER BY RAND()
        LIMIT ?`,
-      [userId, userId, limit]
+      [language, userId, userId, limit]
     );
     return rows;
   }

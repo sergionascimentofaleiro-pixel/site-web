@@ -30,12 +30,12 @@
           <p class="bio">{{ currentProfile()!.bio }}</p>
         }
 
-        @if (currentProfile()?.interests) {
+        @if (getInterests(currentProfile()).length > 0) {
           <div class="interests">
             <strong>{{ 'discover.interests' | translate }}:</strong>
             <div class="tags">
-              @for (interest of currentProfile()!.interests!.split(','); track interest) {
-                <span class="tag">{{ interest.trim() }}</span>
+              @for (interest of getInterests(currentProfile()); track interest.name) {
+                <span class="tag">{{ interest.icon }} {{ interest.name }}</span>
               }
             </div>
           </div>

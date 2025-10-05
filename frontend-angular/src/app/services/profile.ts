@@ -13,6 +13,7 @@ export interface ProfileData {
   location?: string;
   interests?: string;
   profile_photo?: string;
+  interests_with_icons?: string;
 }
 
 export interface PotentialMatch extends ProfileData {
@@ -35,8 +36,9 @@ export class Profile {
     return this.http.get<ProfileData>(`${this.apiUrl}/me`);
   }
 
-  getPotentialMatches(limit: number = 10): Observable<PotentialMatch[]> {
-    return this.http.get<PotentialMatch[]>(`${this.apiUrl}/potential-matches?limit=${limit}`);
+  getPotentialMatches(limit: number = 10, language?: string): Observable<PotentialMatch[]> {
+    const lang = language || localStorage.getItem('language') || 'en';
+    return this.http.get<PotentialMatch[]>(`${this.apiUrl}/potential-matches?limit=${limit}&lang=${lang}`);
   }
 
   swipe(targetUserId: number, action: 'like' | 'pass'): Observable<{ message: string; isMatch: boolean }> {

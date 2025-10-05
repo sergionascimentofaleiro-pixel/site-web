@@ -2,7 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Profile as ProfileService, PotentialMatch } from '../../services/profile';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-discover',
@@ -18,15 +18,27 @@ export class Discover implements OnInit {
   matchedProfile = signal<PotentialMatch | null>(null);
   noMoreProfiles = signal(false);
 
-  constructor(private profileService: ProfileService) {}
+  constructor(
+    private profileService: ProfileService,
+    private translate: TranslateService
+  ) {}
+
+  private get currentLanguage(): string {
+    return this.translate.currentLang || 'en';
+  }
 
   ngOnInit(): void {
     this.loadProfiles();
+
+    // Reload profiles when language changes
+    this.translate.onLangChange.subscribe(() => {
+      this.loadProfiles();
+    });
   }
 
   loadProfiles(): void {
     this.isLoading.set(true);
-    this.profileService.getPotentialMatches(10).subscribe({
+    this.profileService.getPotentialMatches(10, this.currentLanguage).subscribe({
       next: (profiles) => {
         this.profiles.set(profiles);
         if (profiles.length > 0) {
@@ -96,7 +108,7 @@ export class Discover implements OnInit {
   }
 
   loadMoreProfiles(): void {
-    this.profileService.getPotentialMatches(10).subscribe({
+    this.profileService.getPotentialMatches(10, this.currentLanguage).subscribe({
       next: (newProfiles) => {
         const current = this.profiles();
         this.profiles.set([...current, ...newProfiles]);
@@ -105,6 +117,18 @@ export class Discover implements OnInit {
         console.error('Error loading more profiles:', error);
       }
     });
+  }
+
+  getInterests(profile: PotentialMatch | null): { name: string; icon: string }[] {
+    if (!profile?.interests_with_icons) return [];
+
+    return profile.interests_with_icons
+      .split('||')
+      .filter(item => item.trim())
+      .map(item => {
+        const [name, icon] = item.split('|');
+        return { name: name || '', icon: icon || '' };
+      });
   }
 
   closeMatchPopup(): void {
