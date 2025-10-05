@@ -1,1 +1,94 @@
-<p>discover works!</p>
+<div class="discover-container">
+  <h1>Discover</h1>
+
+  @if (isLoading()) {
+    <div class="loading">
+      <p>Loading profiles...</p>
+    </div>
+  }
+
+  @if (!isLoading() && currentProfile()) {
+    <div class="profile-card">
+      <!-- Photo -->
+      <div class="profile-photo">
+        @if (currentProfile()?.profile_photo) {
+          <img [src]="currentProfile()!.profile_photo" [alt]="currentProfile()!.first_name" />
+        } @else {
+          <div class="no-photo">No Photo</div>
+        }
+      </div>
+
+      <!-- Info -->
+      <div class="profile-info">
+        <h2>{{ currentProfile()!.first_name }}, {{ getAge(currentProfile()!.birth_date) }}</h2>
+
+        @if (currentProfile()?.location) {
+          <p class="location">📍 {{ currentProfile()!.location }}</p>
+        }
+
+        @if (currentProfile()?.bio) {
+          <p class="bio">{{ currentProfile()!.bio }}</p>
+        }
+
+        @if (currentProfile()?.interests) {
+          <div class="interests">
+            <strong>Interests:</strong>
+            <div class="tags">
+              @for (interest of currentProfile()!.interests!.split(','); track interest) {
+                <span class="tag">{{ interest.trim() }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="actions">
+        <button class="btn-pass" (click)="pass()" title="Pass">
+          <span class="icon">✖️</span>
+        </button>
+        <button class="btn-like" (click)="like()" title="Like">
+          <span class="icon">❤️</span>
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (!isLoading() && noMoreProfiles()) {
+    <div class="no-profiles">
+      <h2>No More Profiles</h2>
+      <p>You've seen all available profiles for now.</p>
+      <p>Check back later for new matches!</p>
+      <button class="btn-primary" (click)="loadProfiles()">Refresh</button>
+    </div>
+  }
+
+  <!-- Match Popup -->
+  @if (showMatchPopup() && matchedProfile()) {
+    <div class="match-overlay" (click)="closeMatchPopup()">
+      <div class="match-popup" (click)="$event.stopPropagation()">
+        <h2>🎉 It's a Match! 🎉</h2>
+
+        <div class="match-profiles">
+          <img
+            [src]="matchedProfile()!.profile_photo || 'https://via.placeholder.com/150'"
+            [alt]="matchedProfile()!.first_name"
+          />
+        </div>
+
+        <p class="match-message">
+          You and <strong>{{ matchedProfile()!.first_name }}</strong> liked each other!
+        </p>
+
+        <div class="match-actions">
+          <button class="btn-secondary" (click)="closeMatchPopup()">
+            Keep Swiping
+          </button>
+          <a routerLink="/matches" class="btn-primary">
+            Send a Message
+          </a>
+        </div>
+      </div>
+    </div>
+  }
+</div>
