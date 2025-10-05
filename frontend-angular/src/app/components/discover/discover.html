@@ -16,6 +16,16 @@
         } @else {
           <div class="no-photo">{{ 'discover.noPhoto' | translate }}</div>
         }
+
+        <!-- Match Percentage Badge -->
+        @if (currentProfile()?.match_percentage !== undefined) {
+          <div class="match-badge" [class.high-match]="currentProfile()!.match_percentage >= 70"
+               [class.medium-match]="currentProfile()!.match_percentage >= 40 && currentProfile()!.match_percentage < 70"
+               [class.low-match]="currentProfile()!.match_percentage < 40">
+            <span class="match-icon">✨</span>
+            <span class="match-text">{{ currentProfile()!.match_percentage }}% {{ 'discover.match' | translate }}</span>
+          </div>
+        }
       </div>
 
       <!-- Info -->

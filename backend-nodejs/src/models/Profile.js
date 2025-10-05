@@ -2,11 +2,11 @@ const db = require('../config/database');
 
 class Profile {
   static async create(profileData) {
-    const { userId, firstName, birthDate, gender, lookingFor, bio, location, interests, profilePhoto } = profileData;
+    const { userId, firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, interests, profilePhoto } = profileData;
     const [result] = await db.execute(
-      `INSERT INTO profiles (user_id, first_name, birth_date, gender, looking_for, bio, location, interests, profile_photo)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [userId, firstName, birthDate, gender, lookingFor, bio, location, interests, profilePhoto]
+      `INSERT INTO profiles (user_id, first_name, last_name, phone, birth_date, gender, looking_for, bio, location, interests, profile_photo)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [userId, firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, interests, profilePhoto]
     );
     return result.insertId;
   }
@@ -28,13 +28,13 @@ class Profile {
   }
 
   static async update(userId, profileData) {
-    const { firstName, birthDate, gender, lookingFor, bio, location, interests, profilePhoto } = profileData;
+    const { firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, interests, profilePhoto } = profileData;
     await db.execute(
       `UPDATE profiles
-       SET first_name = ?, birth_date = ?, gender = ?, looking_for = ?,
+       SET first_name = ?, last_name = ?, phone = ?, birth_date = ?, gender = ?, looking_for = ?,
            bio = ?, location = ?, interests = ?, profile_photo = ?
        WHERE user_id = ?`,
-      [firstName, birthDate, gender, lookingFor, bio, location, interests, profilePhoto, userId]
+      [firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, interests, profilePhoto, userId]
     );
   }
 
@@ -46,6 +46,16 @@ class Profile {
       return [];
     }
 
+    // Get my interests
+    const [myInterests] = await db.execute(
+      'SELECT interest_id FROM profile_interests WHERE profile_id = ?',
+      [myProfile.id]
+    );
+    const myInterestIds = myInterests.map(i => i.interest_id);
+
+    // Calculate my age
+    const myAge = this.calculateAge(myProfile.birth_date);
+
     // Get profiles that match user's preferences and haven't been liked/passed yet
     const [rows] = await db.execute(
       `SELECT p.*, u.id as user_id,
@@ -55,7 +65,8 @@ class Profile {
            '|',
            i.interest_icon
          ) SEPARATOR '||'
-       ) as interests_with_icons
+       ) as interests_with_icons,
+       GROUP_CONCAT(DISTINCT pi.interest_id) as interest_ids
        FROM profiles p
        JOIN users u ON p.user_id = u.id
        LEFT JOIN profile_interests pi ON p.id = pi.profile_id
@@ -71,12 +82,58 @@ class Profile {
        AND p.id NOT IN (
          SELECT to_user_id FROM likes WHERE from_user_id = ?
        )
-       GROUP BY p.id, u.id
-       ORDER BY RAND()
-       LIMIT ?`,
-      [language, userId, myProfile.looking_for, myProfile.looking_for, userId, limit]
+       GROUP BY p.id, u.id`,
+      [language, userId, myProfile.looking_for, myProfile.looking_for, userId]
     );
-    return rows;
+
+    // Calculate match score for each profile
+    const profilesWithScore = rows.map(profile => {
+      let score = 0;
+
+      // Gender match (30 points)
+      if (profile.gender === myProfile.looking_for || myProfile.looking_for === 'all') {
+        score += 30;
+      }
+
+      // Age compatibility (20 points) - prefer similar age (±5 years = max score)
+      const theirAge = this.calculateAge(profile.birth_date);
+      const ageDiff = Math.abs(myAge - theirAge);
+      if (ageDiff <= 5) {
+        score += 20;
+      } else if (ageDiff <= 10) {
+        score += 15;
+      } else if (ageDiff <= 15) {
+        score += 10;
+      } else if (ageDiff <= 20) {
+        score += 5;
+      }
+
+      // Interest match (50 points)
+      if (profile.interest_ids && myInterestIds.length > 0) {
+        const theirInterestIds = profile.interest_ids.split(',').map(id => parseInt(id));
+        const commonInterests = theirInterestIds.filter(id => myInterestIds.includes(id));
+        const interestMatchRatio = commonInterests.length / Math.max(myInterestIds.length, theirInterestIds.length);
+        score += Math.round(interestMatchRatio * 50);
+      }
+
+      profile.match_percentage = Math.min(score, 100);
+      return profile;
+    });
+
+    // Sort by match percentage (descending) and limit
+    profilesWithScore.sort((a, b) => b.match_percentage - a.match_percentage);
+    return profilesWithScore.slice(0, limit);
+  }
+
+  static calculateAge(birthDate) {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
   }
 
   static async delete(userId) {

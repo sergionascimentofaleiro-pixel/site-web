@@ -27,32 +27,82 @@
         }
       </div>
 
-      <!-- First Name -->
-      <div class="form-group">
-        <label for="firstName">{{ 'profile.firstName' | translate }} *</label>
-        <input
-          type="text"
-          id="firstName"
-          [(ngModel)]="firstName"
-          name="firstName"
-          [placeholder]="'profile.firstName' | translate"
-          required
-        />
+      <!-- Private Information (visible only to you) -->
+      <div class="private-section">
+        <h3>{{ 'profile.privateInfo' | translate }}</h3>
+        <p class="info-text">{{ 'profile.privateInfoDesc' | translate }}</p>
+
+        <!-- Email (read-only) -->
+        <div class="form-group">
+          <label for="email">{{ 'profile.email' | translate }}</label>
+          <input
+            type="email"
+            id="email"
+            [(ngModel)]="email"
+            name="email"
+            readonly
+            disabled
+          />
+          <small>{{ 'profile.emailReadOnly' | translate }}</small>
+        </div>
+
+        <!-- Last Name -->
+        <div class="form-group">
+          <label for="lastName">{{ 'profile.lastName' | translate }}</label>
+          <input
+            type="text"
+            id="lastName"
+            [(ngModel)]="lastName"
+            name="lastName"
+            [placeholder]="'profile.lastName' | translate"
+          />
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+          <label for="phone">{{ 'profile.phone' | translate }}</label>
+          <input
+            type="tel"
+            id="phone"
+            [(ngModel)]="phone"
+            name="phone"
+            [placeholder]="'profile.phonePlaceholder' | translate"
+          />
+        </div>
       </div>
 
-      <!-- Birth Date -->
-      <div class="form-group">
-        <label for="birthDate">{{ 'profile.birthDate' | translate }} *</label>
-        <input
-          type="date"
-          id="birthDate"
-          [(ngModel)]="birthDate"
-          name="birthDate"
-          required
-        />
-        @if (getAge() > 0) {
-          <small>{{ 'profile.age' | translate }}: {{ getAge() }} {{ 'profile.years' | translate }}</small>
-        }
+      <!-- Public Information -->
+      <div class="public-section">
+        <h3>{{ 'profile.publicInfo' | translate }}</h3>
+        <p class="info-text">{{ 'profile.publicInfoDesc' | translate }}</p>
+
+        <!-- First Name -->
+        <div class="form-group">
+          <label for="firstName">{{ 'profile.firstName' | translate }} *</label>
+          <input
+            type="text"
+            id="firstName"
+            [(ngModel)]="firstName"
+            name="firstName"
+            [placeholder]="'profile.firstName' | translate"
+            required
+          />
+        </div>
+
+        <!-- Birth Date -->
+        <div class="form-group">
+          <label for="birthDate">{{ 'profile.birthDate' | translate }} *</label>
+          <input
+            type="date"
+            id="birthDate"
+            [(ngModel)]="birthDate"
+            name="birthDate"
+            required
+          />
+          @if (getAge() > 0) {
+            <small>{{ 'profile.age' | translate }}: {{ getAge() }} {{ 'profile.years' | translate }}</small>
+          }
+        </div>
       </div>
 
       <!-- Gender -->

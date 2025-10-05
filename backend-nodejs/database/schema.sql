@@ -17,6 +17,8 @@ CREATE TABLE IF NOT EXISTS profiles (
     id INT PRIMARY KEY AUTO_INCREMENT,
     user_id INT UNIQUE NOT NULL,
     first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100),
+    phone VARCHAR(20),
     birth_date DATE NOT NULL,
     gender ENUM('male', 'female', 'other') NOT NULL,
     looking_for ENUM('male', 'female', 'other', 'all') NOT NULL,

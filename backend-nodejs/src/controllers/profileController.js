@@ -8,6 +8,8 @@ exports.createProfile = async (req, res) => {
 
     // Accept both camelCase and snake_case
     const firstName = req.body.firstName || req.body.first_name;
+    const lastName = req.body.lastName || req.body.last_name;
+    const phone = req.body.phone;
     const birthDate = req.body.birthDate || req.body.birth_date;
     const gender = req.body.gender;
     const lookingFor = req.body.lookingFor || req.body.looking_for;
@@ -32,6 +34,8 @@ exports.createProfile = async (req, res) => {
 
     const profileData = {
       firstName,
+      lastName,
+      phone,
       birthDate: formattedBirthDate,
       gender,
       lookingFor,
@@ -76,6 +80,13 @@ exports.getMyProfile = async (req, res) => {
       // Just extract the date part
       profile.birth_date = profile.birth_date.split('T')[0];
       console.log('Formatted birth_date sent to frontend:', profile.birth_date);
+    }
+
+    // Get user email from users table
+    const User = require('../models/User');
+    const user = await User.findById(userId);
+    if (user) {
+      profile.email = user.email;
     }
 
     res.json(profile);

@@ -6,6 +6,9 @@ export interface ProfileData {
   id?: number;
   user_id?: number;
   first_name: string;
+  last_name?: string;
+  email?: string;
+  phone?: string;
   birth_date: string;
   gender: 'male' | 'female' | 'other';
   looking_for: 'male' | 'female' | 'other' | 'all';
@@ -14,10 +17,12 @@ export interface ProfileData {
   interests?: string;
   profile_photo?: string;
   interests_with_icons?: string;
+  match_percentage?: number;
 }
 
 export interface PotentialMatch extends ProfileData {
   user_id: number;
+  match_percentage: number;
 }
 
 @Injectable({

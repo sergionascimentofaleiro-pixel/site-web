@@ -14,6 +14,9 @@ import { CommonModule } from '@angular/common';
 })
 export class Profile implements OnInit {
   firstName = signal('');
+  lastName = signal('');
+  email = signal('');
+  phone = signal('');
   birthDate = signal('');
   gender = signal<'male' | 'female' | 'other'>('male');
   lookingFor = signal<'male' | 'female' | 'other' | 'all'>('female');
@@ -70,6 +73,9 @@ export class Profile implements OnInit {
       next: (profile) => {
         this.isNewProfile.set(false);
         this.firstName.set(profile.first_name);
+        this.lastName.set(profile.last_name || '');
+        this.email.set(profile.email || '');
+        this.phone.set(profile.phone || '');
         this.birthDate.set(profile.birth_date);
         this.gender.set(profile.gender);
         this.lookingFor.set(profile.looking_for);
@@ -128,6 +134,8 @@ export class Profile implements OnInit {
 
     const profileData: ProfileData = {
       first_name: this.firstName(),
+      last_name: this.lastName(),
+      phone: this.phone(),
       birth_date: this.birthDate(),
       gender: this.gender(),
       looking_for: this.lookingFor(),
