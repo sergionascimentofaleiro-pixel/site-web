@@ -6,7 +6,12 @@
       <div class="nav-links">
         <a routerLink="/discover" routerLinkActive="active">{{ 'nav.discover' | translate }}</a>
         <a routerLink="/matches" routerLinkActive="active">{{ 'nav.matches' | translate }}</a>
-        <a routerLink="/messages" routerLinkActive="active">💬 {{ 'nav.messages' | translate }}</a>
+        <a routerLink="/messages" routerLinkActive="active" class="messages-link">
+          💬 {{ 'nav.messages' | translate }}
+          @if (unreadCount() > 0) {
+            <span class="unread-badge">{{ unreadCount() }}</span>
+          }
+        </a>
         <a routerLink="/profile" routerLinkActive="active">{{ 'nav.profile' | translate }}</a>
 
         <div class="language-selector">
@@ -102,5 +107,24 @@
   .language-selector select:focus {
     outline: none;
     border-color: var(--primary-color);
+  }
+
+  .messages-link {
+    position: relative;
+  }
+
+  .unread-badge {
+    position: absolute;
+    top: -8px;
+    right: -12px;
+    background: #ff4458;
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 1.2;
   }
 </style>

@@ -2,7 +2,13 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Match as MatchService, MatchData } from '../../services/match';
+import { Message as MessageService } from '../../services/message';
 import { TranslateModule } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
+
+interface MatchWithUnread extends MatchData {
+  unreadCount?: number;
+}
 
 @Component({
   selector: 'app-matches',
@@ -11,11 +17,14 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrl: './matches.scss'
 })
 export class Matches implements OnInit {
-  matches = signal<MatchData[]>([]);
+  matches = signal<MatchWithUnread[]>([]);
   isLoading = signal(true);
   errorMessage = signal('');
 
-  constructor(private matchService: MatchService) {}
+  constructor(
+    private matchService: MatchService,
+    private messageService: MessageService
+  ) {}
 
   ngOnInit(): void {
     this.loadMatches();
@@ -24,8 +33,22 @@ export class Matches implements OnInit {
   loadMatches(): void {
     this.isLoading.set(true);
     this.matchService.getMatches().subscribe({
-      next: (matches) => {
-        this.matches.set(matches);
+      next: async (matches) => {
+        // Get unread counts for all matches
+        let unreadCounts: { [matchId: number]: number } = {};
+        try {
+          unreadCounts = await firstValueFrom(this.messageService.getUnreadCounts());
+        } catch (error) {
+          console.error('Error loading unread counts:', error);
+        }
+
+        // Add unread count to each match
+        const matchesWithUnread: MatchWithUnread[] = matches.map(match => ({
+          ...match,
+          unreadCount: unreadCounts[match.matchId] || 0
+        }));
+
+        this.matches.set(matchesWithUnread);
         this.isLoading.set(false);
       },
       error: (error) => {

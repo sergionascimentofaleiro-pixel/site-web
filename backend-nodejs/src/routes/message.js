@@ -9,6 +9,7 @@ router.use(authenticateToken);
 router.post('/', messageController.sendMessage);
 router.get('/conversations', messageController.getConversations);
 router.get('/unread-count', messageController.getUnreadCount);
+router.get('/unread-counts', messageController.getUnreadCounts);
 router.get('/:matchId', messageController.getConversation);
 
 module.exports = router;

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -15,6 +15,8 @@ import { TranslateModule } from '@ngx-translate/core';
   styleUrl: './chat.scss'
 })
 export class Chat implements OnInit, OnDestroy {
+  @ViewChild('messageInput') messageInput!: ElementRef<HTMLTextAreaElement>;
+
   matchId = signal<number | null>(null);
   match = signal<MatchData | null>(null);
   messages = signal<MessageData[]>([]);
@@ -59,6 +61,11 @@ export class Chat implements OnInit, OnDestroy {
         });
         setTimeout(() => this.scrollToBottom(), 100);
         this.isSending.set(false);
+
+        // Mark the new message as read if it's from the other user
+        if (message.sender_id !== this.currentUserId()) {
+          this.markMessagesAsRead(this.matchId()!);
+        }
       }
     });
 
@@ -95,9 +102,10 @@ export class Chat implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    // Leave conversation room
+    // Mark all messages as read before leaving
     const matchId = this.matchId();
     if (matchId) {
+      this.markMessagesAsRead(matchId);
       this.socketService.leaveConversation(matchId);
     }
 
@@ -108,6 +116,13 @@ export class Chat implements OnInit, OnDestroy {
 
     // Remove listeners
     this.socketService.removeAllListeners();
+  }
+
+  private markMessagesAsRead(matchId: number): void {
+    // Call the API to mark messages as read
+    this.messageService.getConversation(matchId, 1).subscribe({
+      error: (error) => console.error('Error marking messages as read:', error)
+    });
   }
 
   loadMatch(): void {
@@ -183,6 +198,13 @@ export class Chat implements OnInit, OnDestroy {
       console.log('WebSocket not connected, using HTTP');
       this.sendViaHttp(matchId, match.otherUser.id, messageText);
     }
+
+    // Keep focus on the input after Angular updates the view
+    setTimeout(() => {
+      if (this.messageInput?.nativeElement) {
+        this.messageInput.nativeElement.focus();
+      }
+    }, 50);
   }
 
   private sendViaHttp(matchId: number, receiverId: number, message: string): void {

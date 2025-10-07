@@ -48,6 +48,14 @@ export class Messages implements OnInit {
 
     this.matchService.getMatches().subscribe({
       next: async (matches) => {
+        // Get unread counts for all matches
+        let unreadCounts: { [matchId: number]: number } = {};
+        try {
+          unreadCounts = await firstValueFrom(this.messageService.getUnreadCounts());
+        } catch (error) {
+          console.error('Error loading unread counts:', error);
+        }
+
         // For each match, get the last message
         const conversationsWithMessages: ConversationPreview[] = [];
 
@@ -60,11 +68,14 @@ export class Messages implements OnInit {
               ...match,
               lastMessage: lastMessage?.message,
               lastMessageTime: lastMessage?.created_at,
-              unreadCount: 0 // TODO: Implement unread count
+              unreadCount: unreadCounts[match.matchId] || 0
             });
           } catch (error) {
             console.error(`Error loading messages for match ${match.matchId}:`, error);
-            conversationsWithMessages.push(match);
+            conversationsWithMessages.push({
+              ...match,
+              unreadCount: unreadCounts[match.matchId] || 0
+            });
           }
         }
 
@@ -108,6 +119,20 @@ export class Messages implements OnInit {
   }
 
   openChat(matchId: number): void {
+    // Reset unread count for this conversation
+    this.conversations.update(convs => {
+      const index = convs.findIndex(c => c.matchId === matchId);
+      if (index !== -1) {
+        const updated = [...convs];
+        updated[index] = {
+          ...updated[index],
+          unreadCount: 0
+        };
+        return updated;
+      }
+      return convs;
+    });
+
     this.router.navigate(['/chat', matchId]);
   }
 

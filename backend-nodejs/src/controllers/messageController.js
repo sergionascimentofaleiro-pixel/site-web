@@ -87,3 +87,22 @@ exports.getConversations = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+// Get unread counts by match
+exports.getUnreadCounts = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const counts = await Message.getUnreadCountsByUser(userId);
+
+    // Convert array to object with matchId as key
+    const countsMap = {};
+    counts.forEach(row => {
+      countsMap[row.match_id] = row.count;
+    });
+
+    res.json(countsMap);
+  } catch (error) {
+    console.error('Get unread counts error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};

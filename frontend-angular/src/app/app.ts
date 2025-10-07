@@ -1,9 +1,11 @@
-import { Component, OnInit, effect, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, OnInit, OnDestroy, effect, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth } from './services/auth';
+import { Message as MessageService } from './services/message';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +13,7 @@ import { TranslateService, TranslateModule } from '@ngx-translate/core';
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
   availableLanguages = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'fr', name: 'Français', flag: '🇫🇷' },
@@ -20,9 +22,12 @@ export class App implements OnInit {
   ];
 
   currentLanguage = 'fr';
+  unreadCount = signal(0);
+  private unreadInterval: any;
 
   constructor(
     public authService: Auth,
+    private messageService: MessageService,
     private router: Router,
     public translate: TranslateService
   ) {
@@ -58,7 +63,43 @@ export class App implements OnInit {
   }
 
   ngOnInit(): void {
-    // Component initialized
+    // Load unread count when user is authenticated
+    if (this.authService.isAuthenticated()) {
+      this.loadUnreadCount();
+
+      // Refresh unread count every 30 seconds
+      this.unreadInterval = setInterval(() => {
+        if (this.authService.isAuthenticated()) {
+          this.loadUnreadCount();
+        }
+      }, 30000);
+    }
+
+    // Reload unread count when navigating
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        if (this.authService.isAuthenticated()) {
+          this.loadUnreadCount();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    if (this.unreadInterval) {
+      clearInterval(this.unreadInterval);
+    }
+  }
+
+  loadUnreadCount(): void {
+    this.messageService.getUnreadCount().subscribe({
+      next: (result) => {
+        this.unreadCount.set(result.unreadCount);
+      },
+      error: (error) => {
+        console.error('Error loading unread count:', error);
+      }
+    });
   }
 
   changeLanguage(lang: string): void {

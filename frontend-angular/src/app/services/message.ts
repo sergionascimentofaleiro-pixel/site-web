@@ -34,6 +34,10 @@ export class Message {
     return this.http.get<{ unreadCount: number }>(`${this.apiUrl}/unread-count`);
   }
 
+  getUnreadCounts(): Observable<{ [matchId: number]: number }> {
+    return this.http.get<{ [matchId: number]: number }>(`${this.apiUrl}/unread-counts`);
+  }
+
   getConversations(): Observable<MessageData[]> {
     return this.http.get<MessageData[]>(`${this.apiUrl}/conversations`);
   }

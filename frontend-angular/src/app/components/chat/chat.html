@@ -55,6 +55,7 @@
     }
     <div class="message-input-wrapper">
       <textarea
+        #messageInput
         [(ngModel)]="newMessage"
         [placeholder]="'chat.typePlaceholder' | translate"
         (input)="onInput()"

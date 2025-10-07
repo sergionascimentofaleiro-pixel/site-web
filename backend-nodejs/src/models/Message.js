@@ -74,6 +74,25 @@ class Message {
     );
     return rows;
   }
+
+  static async getUnreadCountByMatch(matchId, userId) {
+    const [rows] = await db.execute(
+      'SELECT COUNT(*) as count FROM messages WHERE match_id = ? AND receiver_id = ? AND is_read = FALSE',
+      [matchId, userId]
+    );
+    return rows[0].count;
+  }
+
+  static async getUnreadCountsByUser(userId) {
+    const [rows] = await db.execute(
+      `SELECT match_id, COUNT(*) as count
+       FROM messages
+       WHERE receiver_id = ? AND is_read = FALSE
+       GROUP BY match_id`,
+      [userId]
+    );
+    return rows;
+  }
 }
 
 module.exports = Message;

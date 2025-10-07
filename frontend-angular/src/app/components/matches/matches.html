@@ -51,6 +51,9 @@
             <div class="match-actions">
               <a [routerLink]="['/chat', match.matchId]" class="btn-message">
                 💬 {{ 'matches.message' | translate }}
+                @if (match.unreadCount && match.unreadCount > 0) {
+                  <span class="unread-badge">{{ match.unreadCount }}</span>
+                }
               </a>
               <button
                 class="btn-unmatch"
