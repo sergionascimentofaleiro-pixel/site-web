@@ -47,6 +47,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
   }
 
   .nav-brand {
@@ -60,6 +62,7 @@
     display: flex;
     gap: 2rem;
     align-items: center;
+    flex-wrap: wrap;
   }
 
   .nav-links a {
@@ -127,5 +130,62 @@
     min-width: 18px;
     text-align: center;
     line-height: 1.2;
+  }
+
+  /* Responsive styles */
+  @media (max-width: 1024px) {
+    .nav-links {
+      gap: 1.5rem;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .nav-container {
+      padding: 1rem;
+    }
+
+    .nav-links {
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .nav-brand {
+      font-size: 1.3rem;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .nav-container {
+      justify-content: center;
+    }
+
+    .nav-brand {
+      width: 100%;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .nav-links {
+      width: 100%;
+      justify-content: center;
+      gap: 0.8rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .nav-links {
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .language-selector select {
+      padding: 6px 8px;
+      font-size: 0.85rem;
+    }
+
+    .btn-logout {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
   }
 </style>
