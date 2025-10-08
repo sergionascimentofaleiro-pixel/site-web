@@ -11,7 +11,8 @@
 
   @if (!isLoading() && conversations().length === 0) {
     <div class="no-conversations">
-      <p class="no-conversations-text">{{ 'messages.noConversations' | translate }}</p>
+      <div class="empty-icon">💬</div>
+      <h2 class="no-conversations-title">{{ 'messages.noConversations' | translate }}</h2>
       <p class="hint">{{ 'messages.noConversationsText' | translate }}</p>
       <button class="btn-primary" routerLink="/discover">
         {{ 'matches.startSwiping' | translate }}
