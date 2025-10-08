@@ -2,6 +2,7 @@ import { Component, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Auth } from '../../services/auth';
+import { Profile as ProfileService } from '../../services/profile';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 @Component({
@@ -18,6 +19,7 @@ export class Login {
 
   constructor(
     private authService: Auth,
+    private profileService: ProfileService,
     private router: Router,
     private translate: TranslateService
   ) {}
@@ -38,13 +40,23 @@ export class Login {
           this.translate.use(response.preferredLanguage);
           localStorage.setItem('language', response.preferredLanguage);
         }
-        this.router.navigate(['/discover']);
+
+        // Check if user has a complete profile
+        this.profileService.getMyProfile().subscribe({
+          next: (profile) => {
+            // Profile exists, go to discover
+            this.router.navigate(['/discover']);
+            this.isLoading.set(false);
+          },
+          error: () => {
+            // Profile doesn't exist, go to profile page
+            this.router.navigate(['/profile']);
+            this.isLoading.set(false);
+          }
+        });
       },
       error: (error) => {
         this.errorMessage.set(error.error?.error || 'Login failed');
-        this.isLoading.set(false);
-      },
-      complete: () => {
         this.isLoading.set(false);
       }
     });

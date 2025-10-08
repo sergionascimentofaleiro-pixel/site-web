@@ -3,6 +3,7 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet, NavigationEnd } fro
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth } from './services/auth';
+import { Profile as ProfileService } from './services/profile';
 import { Message as MessageService } from './services/message';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { filter } from 'rxjs/operators';
@@ -23,10 +24,12 @@ export class App implements OnInit, OnDestroy {
 
   currentLanguage = 'fr';
   unreadCount = signal(0);
+  hasProfile = signal(true);
   private unreadInterval: any;
 
   constructor(
     public authService: Auth,
+    private profileService: ProfileService,
     private messageService: MessageService,
     private router: Router,
     public translate: TranslateService
@@ -65,6 +68,7 @@ export class App implements OnInit, OnDestroy {
   ngOnInit(): void {
     // Load unread count when user is authenticated
     if (this.authService.isAuthenticated()) {
+      this.checkProfile();
       this.loadUnreadCount();
 
       // Refresh unread count every 30 seconds
@@ -75,14 +79,26 @@ export class App implements OnInit, OnDestroy {
       }, 30000);
     }
 
-    // Reload unread count when navigating
+    // Reload unread count and check profile when navigating
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
       .subscribe(() => {
         if (this.authService.isAuthenticated()) {
+          this.checkProfile();
           this.loadUnreadCount();
         }
       });
+  }
+
+  checkProfile(): void {
+    this.profileService.getMyProfile().subscribe({
+      next: () => {
+        this.hasProfile.set(true);
+      },
+      error: () => {
+        this.hasProfile.set(false);
+      }
+    });
   }
 
   ngOnDestroy(): void {
