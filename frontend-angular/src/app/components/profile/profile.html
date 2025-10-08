@@ -116,13 +116,15 @@
 
         <!-- Phone -->
         <div class="form-group">
-          <label for="phone">{{ 'profile.phone' | translate }}</label>
+          <label for="phone" [class.invalid-label]="isFieldInvalid(phone())">{{ 'profile.phone' | translate }} *</label>
           <input
             type="tel"
             id="phone"
             [(ngModel)]="phone"
             name="phone"
             [placeholder]="'profile.phonePlaceholder' | translate"
+            [class.invalid]="isFieldInvalid(phone())"
+            required
           />
         </div>
       </div>
@@ -134,25 +136,27 @@
 
         <!-- First Name -->
         <div class="form-group">
-          <label for="firstName">{{ 'profile.firstName' | translate }} *</label>
+          <label for="firstName" [class.invalid-label]="isFieldInvalid(firstName())">{{ 'profile.firstName' | translate }} *</label>
           <input
             type="text"
             id="firstName"
             [(ngModel)]="firstName"
             name="firstName"
             [placeholder]="'profile.firstName' | translate"
+            [class.invalid]="isFieldInvalid(firstName())"
             required
           />
         </div>
 
         <!-- Birth Date -->
         <div class="form-group">
-          <label for="birthDate">{{ 'profile.birthDate' | translate }} *</label>
+          <label for="birthDate" [class.invalid-label]="isFieldInvalid(birthDate())">{{ 'profile.birthDate' | translate }} *</label>
           <input
             type="date"
             id="birthDate"
             [(ngModel)]="birthDate"
             name="birthDate"
+            [class.invalid]="isFieldInvalid(birthDate())"
             required
           />
           @if (getAge() > 0) {
@@ -163,8 +167,8 @@
 
       <!-- Gender -->
       <div class="form-group">
-        <label for="gender">{{ 'profile.gender' | translate }} *</label>
-        <select id="gender" [(ngModel)]="gender" name="gender" required>
+        <label for="gender" [class.invalid-label]="isFieldInvalid(gender())">{{ 'profile.gender' | translate }} *</label>
+        <select id="gender" [(ngModel)]="gender" name="gender" [class.invalid]="isFieldInvalid(gender())" required>
           <option value="male">{{ 'profile.male' | translate }}</option>
           <option value="female">{{ 'profile.female' | translate }}</option>
           <option value="other">{{ 'profile.other' | translate }}</option>
@@ -173,8 +177,8 @@
 
       <!-- Looking For -->
       <div class="form-group">
-        <label for="lookingFor">{{ 'profile.lookingFor' | translate }} *</label>
-        <select id="lookingFor" [(ngModel)]="lookingFor" name="lookingFor" required>
+        <label for="lookingFor" [class.invalid-label]="isFieldInvalid(lookingFor())">{{ 'profile.lookingFor' | translate }} *</label>
+        <select id="lookingFor" [(ngModel)]="lookingFor" name="lookingFor" [class.invalid]="isFieldInvalid(lookingFor())" required>
           <option value="male">{{ 'profile.male' | translate }}</option>
           <option value="female">{{ 'profile.female' | translate }}</option>
           <option value="other">{{ 'profile.other' | translate }}</option>
@@ -184,12 +188,13 @@
 
       <!-- Country -->
       <div class="form-group">
-        <label for="country">{{ 'profile.country' | translate }} *</label>
+        <label for="country" [class.invalid-label]="isFieldInvalid(selectedCountryId())">{{ 'profile.country' | translate }} *</label>
         <select
           id="country"
           [ngModel]="selectedCountryId()"
           (ngModelChange)="onCountryChange($event)"
           name="country"
+          [class.invalid]="isFieldInvalid(selectedCountryId())"
           required>
           <option [ngValue]="null">{{ 'profile.selectCountry' | translate }}</option>
           @for (country of countries(); track country.id) {
@@ -219,7 +224,7 @@
       <!-- City (Autocomplete) -->
       @if (selectedCountryId() !== null && (countryHasStates() === false || selectedStateId() !== null)) {
         <div class="form-group city-autocomplete">
-          <label for="citySearch">{{ 'profile.city' | translate }} *</label>
+          <label for="citySearch" [class.invalid-label]="isFieldInvalid(selectedCityId())">{{ 'profile.city' | translate }} *</label>
           <input
             type="text"
             id="citySearch"
@@ -227,6 +232,7 @@
             (ngModelChange)="onCitySearchChange($event)"
             name="citySearch"
             [placeholder]="'profile.searchCity' | translate"
+            [class.invalid]="isFieldInvalid(selectedCityId())"
             autocomplete="off"
             required
           />
@@ -258,8 +264,13 @@
       </div>
 
       <!-- Interests -->
-      <div class="form-group interests-section">
-        <label>{{ 'profile.interests' | translate }}</label>
+      <div class="form-group interests-section" [class.invalid]="isFieldInvalid(selectedInterestIds().length >= 3 ? 1 : null)">
+        <label [class.invalid-label]="isFieldInvalid(selectedInterestIds().length >= 3 ? 1 : null)">{{ 'profile.interests' | translate }} * (min. 3)</label>
+        @if (isFieldInvalid(selectedInterestIds().length >= 3 ? 1 : null)) {
+          <div class="interests-error">
+            {{ 'profile.interestsRequired' | translate }}
+          </div>
+        }
         <p class="interests-hint">{{ 'profile.selectInterests' | translate }}</p>
 
         @for (category of interestCategories(); track category.category_id) {

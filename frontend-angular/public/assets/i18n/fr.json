@@ -69,7 +69,10 @@
     "saveProfile": "Enregistrer le profil",
     "updateProfile": "Mettre à jour le profil",
     "profileUpdated": "Profil mis à jour avec succès !",
-    "profileCreated": "Profil créé avec succès !"
+    "profileCreated": "Profil créé avec succès !",
+    "requiredFieldsError": "Veuillez remplir tous les champs obligatoires : prénom, date de naissance, genre, recherche, téléphone, pays et ville",
+    "requiredFieldsErrorWithInterests": "Veuillez remplir tous les champs obligatoires et sélectionner au moins 3 centres d'intérêt",
+    "interestsRequired": "Vous devez obligatoirement sélectionner 3 centres d'intérêt"
   },
   "discover": {
     "title": "Découvrir",

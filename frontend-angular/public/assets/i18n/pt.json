@@ -69,7 +69,10 @@
     "saveProfile": "Salvar perfil",
     "updateProfile": "Atualizar perfil",
     "profileUpdated": "Perfil atualizado com sucesso!",
-    "profileCreated": "Perfil criado com sucesso!"
+    "profileCreated": "Perfil criado com sucesso!",
+    "requiredFieldsError": "Por favor preencha todos os campos obrigatórios: primeiro nome, data de nascimento, gênero, procurando por, telefone, país e cidade",
+    "requiredFieldsErrorWithInterests": "Por favor preencha todos os campos obrigatórios e selecione pelo menos 3 interesses",
+    "interestsRequired": "Você deve obrigatoriamente selecionar 3 interesses"
   },
   "discover": {
     "title": "Descobrir",

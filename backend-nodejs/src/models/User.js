@@ -5,10 +5,17 @@ class User {
   static async create(email, password) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const [result] = await db.execute(
-      'INSERT INTO users (email, password_hash) VALUES (?, ?)',
+      'INSERT INTO users (email, password_hash, is_active) VALUES (?, ?, 0)',
       [email, hashedPassword]
     );
     return result.insertId;
+  }
+
+  static async activate(id) {
+    await db.execute(
+      'UPDATE users SET is_active = 1 WHERE id = ?',
+      [id]
+    );
   }
 
   static async findByEmail(email) {

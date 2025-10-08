@@ -24,8 +24,8 @@ exports.createProfile = async (req, res) => {
     console.log('Received birthDate from frontend:', birthDate);
 
     // Validate required fields
-    if (!firstName || !birthDate || !gender || !lookingFor) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!firstName || !birthDate || !gender || !lookingFor || !phone || !countryId || !cityId) {
+      return res.status(400).json({ error: 'Missing required fields: first name, birth date, gender, looking for, phone, country and city are required' });
     }
 
     // Format birthDate to ensure it's stored correctly (YYYY-MM-DD only, no time/timezone)
@@ -61,6 +61,11 @@ exports.createProfile = async (req, res) => {
         userId,
         ...profileData
       });
+
+      // Activate user account when profile is created
+      const User = require('../models/User');
+      await User.activate(userId);
+
       res.status(201).json({ message: 'Profile created successfully', profileId });
     }
   } catch (error) {

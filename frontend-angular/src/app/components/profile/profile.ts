@@ -54,6 +54,13 @@ export class Profile implements OnInit {
   uploadError = signal('');
   isNewProfile = signal(true);
 
+  // Form validation
+  formSubmitted = signal(false);
+
+  isFieldInvalid(value: any): boolean {
+    return this.formSubmitted() && !value;
+  }
+
   constructor(
     private profileService: ProfileService,
     private interestService: InterestService,
@@ -277,8 +284,42 @@ export class Profile implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.firstName() || !this.birthDate() || !this.gender() || !this.lookingFor()) {
-      this.errorMessage.set('Please fill in all required fields');
+    this.formSubmitted.set(true);
+
+    // Check if all fields are valid
+    const hasInvalidFields = !this.firstName() || !this.birthDate() || !this.gender() || !this.lookingFor() || !this.phone() || !this.selectedCountryId() || !this.selectedCityId();
+    const hasInvalidInterests = this.selectedInterestIds().length < 3;
+
+    if (hasInvalidFields || hasInvalidInterests) {
+      if (hasInvalidInterests) {
+        this.errorMessage.set(this.translate.instant('profile.requiredFieldsErrorWithInterests'));
+      } else {
+        this.errorMessage.set(this.translate.instant('profile.requiredFieldsError'));
+      }
+
+      // Scroll to first invalid field
+      setTimeout(() => {
+        let firstInvalid;
+
+        // If only interests are missing, scroll to interests section specifically
+        if (!hasInvalidFields && hasInvalidInterests) {
+          firstInvalid = document.querySelector('.interests-section.invalid');
+        } else {
+          // Otherwise scroll to first invalid input/select
+          firstInvalid = document.querySelector('input.invalid, select.invalid');
+        }
+
+        if (firstInvalid) {
+          const elementPosition = firstInvalid.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - 100; // 100px offset from top
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
+
       return;
     }
 
