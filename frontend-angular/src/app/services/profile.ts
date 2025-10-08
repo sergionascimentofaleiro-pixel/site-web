@@ -58,4 +58,14 @@ export class Profile {
       action
     });
   }
+
+  uploadPhoto(file: File): Observable<{ success: boolean; photoUrl: string; message: string }> {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return this.http.post<{ success: boolean; photoUrl: string; message: string }>(`${this.apiUrl}/upload-photo`, formData);
+  }
+
+  updatePhotoUrl(photoUrl: string): Observable<{ success: boolean; photoUrl: string; message: string }> {
+    return this.http.post<{ success: boolean; photoUrl: string; message: string }>(`${this.apiUrl}/update-photo-url`, { photoUrl });
+  }
 }

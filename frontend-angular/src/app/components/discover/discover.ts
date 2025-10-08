@@ -147,4 +147,13 @@ export class Discover implements OnInit {
     }
     return age;
   }
+
+  getPhotoUrl(url: string | undefined): string {
+    if (!url) return 'https://via.placeholder.com/400x500';
+    // If it's a relative URL (uploaded file), prepend backend URL
+    if (url.startsWith('/uploads/')) {
+      return `http://localhost:3000${url}`;
+    }
+    return url;
+  }
 }

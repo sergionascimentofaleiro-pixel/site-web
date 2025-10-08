@@ -151,3 +151,60 @@ exports.swipe = async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 };
+
+// Upload profile photo
+exports.uploadPhoto = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Construct photo URL
+    const photoUrl = `/uploads/profiles/${req.file.filename}`;
+
+    // Update profile with new photo
+    await Profile.updatePhoto(userId, photoUrl);
+
+    res.json({
+      success: true,
+      photoUrl: photoUrl,
+      message: 'Photo uploaded successfully'
+    });
+  } catch (error) {
+    console.error('Upload photo error:', error);
+    res.status(500).json({ error: 'Failed to upload photo' });
+  }
+};
+
+// Update profile photo URL (for external URLs)
+exports.updatePhotoUrl = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const { photoUrl } = req.body;
+
+    if (!photoUrl) {
+      return res.status(400).json({ error: 'Photo URL is required' });
+    }
+
+    // Validate URL format
+    try {
+      new URL(photoUrl);
+    } catch (e) {
+      return res.status(400).json({ error: 'Invalid URL format' });
+    }
+
+    // Update profile with new photo URL
+    await Profile.updatePhoto(userId, photoUrl);
+
+    res.json({
+      success: true,
+      photoUrl: photoUrl,
+      message: 'Photo URL updated successfully'
+    });
+  } catch (error) {
+    console.error('Update photo URL error:', error);
+    res.status(500).json({ error: 'Failed to update photo URL' });
+  }
+};

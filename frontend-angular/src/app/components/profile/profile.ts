@@ -44,6 +44,14 @@ export class Profile implements OnInit {
   errorMessage = signal('');
   successMessage = signal('');
   isLoading = signal(false);
+
+  // Photo upload
+  showPhotoOptions = signal(false);
+  photoMode = signal<'upload' | 'url'>('upload');
+  selectedFile = signal<File | null>(null);
+  photoUrlInput = signal('');
+  isUploading = signal(false);
+  uploadError = signal('');
   isNewProfile = signal(true);
 
   constructor(
@@ -328,5 +336,100 @@ export class Profile implements OnInit {
       age--;
     }
     return age;
+  }
+
+  // Photo upload methods
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+
+      // Validate file size (5MB max)
+      if (file.size > 5 * 1024 * 1024) {
+        this.uploadError.set('Le fichier doit faire moins de 5 MB');
+        return;
+      }
+
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        this.uploadError.set('Format invalide. Utilisez JPG, PNG ou WebP');
+        return;
+      }
+
+      this.selectedFile.set(file);
+      this.uploadError.set('');
+    }
+  }
+
+  uploadFile(): void {
+    const file = this.selectedFile();
+    if (!file) return;
+
+    this.isUploading.set(true);
+    this.uploadError.set('');
+
+    this.profileService.uploadPhoto(file).subscribe({
+      next: (response) => {
+        this.profilePhoto.set(response.photoUrl);
+        this.successMessage.set('Photo téléchargée avec succès !');
+        this.selectedFile.set(null);
+        this.showPhotoOptions.set(false);
+        this.isUploading.set(false);
+      },
+      error: (error) => {
+        this.uploadError.set(error.error?.error || 'Erreur lors du téléchargement');
+        this.isUploading.set(false);
+      }
+    });
+  }
+
+  openPhotoOptions(): void {
+    this.showPhotoOptions.set(true);
+
+    // If current photo is an external URL (not uploaded), prefill the URL input
+    const currentPhoto = this.profilePhoto();
+    if (currentPhoto && !currentPhoto.startsWith('/uploads/')) {
+      this.photoUrlInput.set(currentPhoto);
+      this.photoMode.set('url');
+    }
+  }
+
+  submitPhotoUrl(): void {
+    const url = this.photoUrlInput();
+    if (!url) {
+      this.uploadError.set('Veuillez saisir une URL');
+      return;
+    }
+
+    // Validate URL format
+    try {
+      new URL(url);
+    } catch (e) {
+      this.uploadError.set('URL invalide');
+      return;
+    }
+
+    this.uploadError.set('');
+
+    this.profileService.updatePhotoUrl(url).subscribe({
+      next: (response) => {
+        this.profilePhoto.set(response.photoUrl);
+        this.successMessage.set('Photo mise à jour avec succès !');
+        this.photoUrlInput.set('');
+        this.showPhotoOptions.set(false);
+      },
+      error: (error) => {
+        this.uploadError.set(error.error?.error || 'Erreur lors de la mise à jour');
+      }
+    });
+  }
+
+  getPhotoUrl(url: string): string {
+    // If it's a relative URL (uploaded file), prepend backend URL
+    if (url && url.startsWith('/uploads/')) {
+      return `http://localhost:3000${url}`;
+    }
+    return url;
   }
 }

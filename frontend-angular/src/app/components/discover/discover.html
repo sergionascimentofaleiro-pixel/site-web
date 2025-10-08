@@ -12,7 +12,7 @@
       <!-- Photo -->
       <div class="profile-photo">
         @if (currentProfile()?.profile_photo) {
-          <img [src]="currentProfile()!.profile_photo" [alt]="currentProfile()!.first_name" />
+          <img [src]="getPhotoUrl(currentProfile()!.profile_photo)" [alt]="currentProfile()!.first_name" />
         } @else {
           <div class="no-photo">{{ 'discover.noPhoto' | translate }}</div>
         }
@@ -109,7 +109,7 @@
 
         <div class="match-profiles">
           <img
-            [src]="matchedProfile()!.profile_photo || 'https://via.placeholder.com/150'"
+            [src]="getPhotoUrl(matchedProfile()!.profile_photo)"
             [alt]="matchedProfile()!.first_name"
           />
         </div>

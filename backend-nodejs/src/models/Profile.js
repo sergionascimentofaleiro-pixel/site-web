@@ -209,6 +209,13 @@ class Profile {
   static async delete(userId) {
     await db.execute('DELETE FROM profiles WHERE user_id = ?', [userId]);
   }
+
+  static async updatePhoto(userId, photoUrl) {
+    await db.execute(
+      'UPDATE profiles SET profile_photo = ? WHERE user_id = ?',
+      [photoUrl, userId]
+    );
+  }
 }
 
 module.exports = Profile;

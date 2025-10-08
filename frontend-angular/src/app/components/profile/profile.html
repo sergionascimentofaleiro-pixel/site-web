@@ -11,19 +11,75 @@
       }
 
       <!-- Photo -->
-      <div class="form-group">
-        <label for="profilePhoto">{{ 'profile.photoUrl' | translate }}</label>
-        <input
-          type="url"
-          id="profilePhoto"
-          [(ngModel)]="profilePhoto"
-          name="profilePhoto"
-          placeholder="https://example.com/photo.jpg"
-        />
+      <div class="form-group photo-section">
+        <label>{{ 'profile.photoUrl' | translate }}</label>
+
         @if (profilePhoto()) {
-          <div class="photo-preview">
-            <img [src]="profilePhoto()" [alt]="'profile.photoPreview' | translate" />
+          <div class="current-photo">
+            <img [src]="getPhotoUrl(profilePhoto())" [alt]="'profile.photoPreview' | translate" />
+            <button type="button" class="btn-change-photo" (click)="openPhotoOptions()">
+              {{ 'profile.changePhoto' | translate }}
+            </button>
           </div>
+        }
+
+        @if (showPhotoOptions() || !profilePhoto()) {
+          <div class="photo-options">
+            <div class="option-buttons">
+              <button type="button" class="btn-option" [class.active]="photoMode() === 'upload'" (click)="photoMode.set('upload')">
+                📤 {{ 'profile.uploadPhoto' | translate }}
+              </button>
+              <button type="button" class="btn-option" [class.active]="photoMode() === 'url'" (click)="photoMode.set('url')">
+                🔗 {{ 'profile.pasteUrl' | translate }}
+              </button>
+            </div>
+
+            @if (photoMode() === 'upload') {
+              <div class="upload-area">
+                <input
+                  type="file"
+                  #fileInput
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  (change)="onFileSelected($event)"
+                  hidden
+                />
+                <button type="button" class="btn-upload" (click)="fileInput.click()">
+                  {{ selectedFile() ? selectedFile()!.name : ('profile.selectFile' | translate) }}
+                </button>
+                @if (selectedFile()) {
+                  <button type="button" class="btn-submit-upload" (click)="uploadFile()">
+                    {{ isUploading() ? ('profile.uploading' | translate) : ('profile.uploadNow' | translate) }}
+                  </button>
+                }
+                <small class="file-info">{{ 'profile.maxFileSize' | translate }}</small>
+              </div>
+            }
+
+            @if (photoMode() === 'url') {
+              <div class="url-input-area">
+                <input
+                  type="url"
+                  [(ngModel)]="photoUrlInput"
+                  name="photoUrlInput"
+                  placeholder="https://example.com/photo.jpg"
+                  class="url-input"
+                />
+                <button type="button" class="btn-submit-url" (click)="submitPhotoUrl()">
+                  {{ 'profile.saveUrl' | translate }}
+                </button>
+              </div>
+            }
+
+            @if (profilePhoto()) {
+              <button type="button" class="btn-cancel" (click)="showPhotoOptions.set(false)">
+                {{ 'common.cancel' | translate }}
+              </button>
+            }
+          </div>
+        }
+
+        @if (uploadError()) {
+          <div class="error-message">{{ uploadError() }}</div>
         }
       </div>
 

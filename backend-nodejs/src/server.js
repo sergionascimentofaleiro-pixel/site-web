@@ -33,6 +33,9 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Serve static files (uploaded photos)
+app.use('/uploads', express.static('uploads'));
+
 // Health check route
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Dating app backend is running' });
