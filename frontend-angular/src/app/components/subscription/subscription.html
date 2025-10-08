@@ -40,9 +40,6 @@
               }
             </div>
           } @else {
-            @if (willRenew()) {
-              <p class="auto-renew">🔄 {{ 'subscription.autoRenew' | translate }}</p>
-            }
             @if (canCancelSubscription()) {
               <button class="btn-cancel" (click)="cancelSubscription()">
                 {{ 'subscription.cancelButton' | translate }}
