@@ -6,6 +6,7 @@ import { Message as MessageService, MessageData } from '../../services/message';
 import { Match as MatchService, MatchData } from '../../services/match';
 import { Auth } from '../../services/auth';
 import { SocketService } from '../../services/socket';
+import { Subscription as SubscriptionService } from '../../services/subscription';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
@@ -25,6 +26,8 @@ export class Chat implements OnInit, OnDestroy {
   isSending = signal(false);
   currentUserId = signal<number | null>(null);
   isTyping = signal(false);
+  accessDenied = signal(false);
+  requiresSubscription = signal(false);
 
   private typingTimeout: any;
 
@@ -34,7 +37,8 @@ export class Chat implements OnInit, OnDestroy {
     private messageService: MessageService,
     private matchService: MatchService,
     private authService: Auth,
-    private socketService: SocketService
+    private socketService: SocketService,
+    private subscriptionService: SubscriptionService
   ) {
     // Get current user ID
     const user = this.authService.currentUser();
@@ -92,11 +96,7 @@ export class Chat implements OnInit, OnDestroy {
       const matchId = parseInt(params['matchId']);
       if (matchId) {
         this.matchId.set(matchId);
-        this.loadMatch();
-        this.loadMessages();
-
-        // Join the conversation room via WebSocket
-        this.socketService.joinConversation(matchId);
+        this.checkConversationAccess(matchId);
       }
     });
   }
@@ -123,6 +123,36 @@ export class Chat implements OnInit, OnDestroy {
     this.messageService.getConversation(matchId, 1).subscribe({
       error: (error) => console.error('Error marking messages as read:', error)
     });
+  }
+
+  checkConversationAccess(matchId: number): void {
+    this.subscriptionService.canAccessConversation(matchId).subscribe({
+      next: (access) => {
+        if (access.canAccess) {
+          // User can access this conversation
+          this.accessDenied.set(false);
+          this.loadMatch();
+          this.loadMessages();
+          this.socketService.joinConversation(matchId);
+        } else {
+          // User cannot access - show subscription prompt
+          this.accessDenied.set(true);
+          this.requiresSubscription.set(true);
+          this.isLoading.set(false);
+        }
+      },
+      error: (error) => {
+        console.error('Error checking conversation access:', error);
+        // In case of error, allow access (fail open)
+        this.loadMatch();
+        this.loadMessages();
+        this.socketService.joinConversation(matchId);
+      }
+    });
+  }
+
+  goToSubscription(): void {
+    this.router.navigate(['/subscription']);
   }
 
   loadMatch(): void {

@@ -13,6 +13,7 @@ const authenticateToken = (req, res, next) => {
       return res.status(403).json({ error: 'Invalid or expired token' });
     }
     req.user = user; // { userId, email }
+    req.userId = user.userId || user.id; // Support both userId and id fields
     next();
   });
 };

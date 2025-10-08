@@ -1,5 +1,6 @@
 const Message = require('../models/Message');
 const Match = require('../models/Match');
+const Subscription = require('../models/Subscription');
 
 // Send a message
 exports.sendMessage = async (req, res) => {
@@ -21,11 +22,27 @@ exports.sendMessage = async (req, res) => {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
+    // Check if user can access this conversation
+    const canAccessResult = await Subscription.canAccessConversation(userId, matchId);
+    if (!canAccessResult.canAccess) {
+      return res.status(403).json({
+        error: 'Conversation limit reached',
+        conversationCount: canAccessResult.conversationCount,
+        limit: canAccessResult.limit,
+        requiresSubscription: true
+      });
+    }
+
+    // Create the message
     const messageId = await Message.create(matchId, userId, receiverId, message);
+
+    // Add conversation to user's list (if not already there)
+    await Subscription.addConversation(userId, matchId);
 
     res.status(201).json({
       message: 'Message sent successfully',
-      messageId
+      messageId,
+      conversationsRemaining: canAccessResult.remaining
     });
   } catch (error) {
     console.error('Send message error:', error);

@@ -98,3 +98,58 @@ CREATE TABLE IF NOT EXISTS messages (
     INDEX idx_receiver (receiver_id),
     INDEX idx_created (created_at)
 );
+
+-- Subscriptions
+CREATE TABLE IF NOT EXISTS subscriptions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    subscription_type ENUM('24h', 'monthly', 'yearly') NOT NULL,
+    status ENUM('active', 'expired', 'cancelled') DEFAULT 'active',
+    cancelled_at TIMESTAMP NULL DEFAULT NULL,
+    will_renew BOOLEAN DEFAULT TRUE,
+    start_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    end_date TIMESTAMP NOT NULL,
+    stripe_payment_intent_id VARCHAR(255),
+    stripe_subscription_id VARCHAR(255),
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'EUR',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_user_id (user_id),
+    INDEX idx_status (status),
+    INDEX idx_end_date (end_date)
+);
+
+-- Payment History
+CREATE TABLE IF NOT EXISTS payment_history (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    subscription_id INT,
+    stripe_payment_intent_id VARCHAR(255),
+    paypal_order_id VARCHAR(255) UNIQUE,
+    amount DECIMAL(10,2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'EUR',
+    subscription_type VARCHAR(50),
+    status VARCHAR(50) NOT NULL,
+    payment_method ENUM('stripe', 'paypal', 'card', 'bank_transfer', 'other') DEFAULT 'paypal',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (subscription_id) REFERENCES subscriptions(id) ON DELETE SET NULL,
+    INDEX idx_user_id (user_id),
+    INDEX idx_payment_intent (stripe_payment_intent_id),
+    INDEX idx_paypal_order (paypal_order_id)
+);
+
+-- User Conversations (for tracking free conversation limit)
+CREATE TABLE IF NOT EXISTS user_conversations (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    match_id INT NOT NULL,
+    first_message_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (match_id) REFERENCES matches(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_match (user_id, match_id),
+    INDEX idx_user_id (user_id)
+);

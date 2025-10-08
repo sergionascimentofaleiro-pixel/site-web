@@ -6,6 +6,7 @@ import { Discover } from './components/discover/discover';
 import { Matches } from './components/matches/matches';
 import { Messages } from './components/messages/messages';
 import { Chat } from './components/chat/chat';
+import { SubscriptionComponent } from './components/subscription/subscription';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -15,5 +16,6 @@ export const routes: Routes = [
   { path: 'discover', component: Discover },
   { path: 'matches', component: Matches },
   { path: 'messages', component: Messages },
-  { path: 'chat/:matchId', component: Chat }
+  { path: 'chat/:matchId', component: Chat },
+  { path: 'subscription', component: SubscriptionComponent }
 ];

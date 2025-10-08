@@ -4,6 +4,7 @@
     "matches": "Matchs",
     "messages": "Messages",
     "chat": "Chat",
+    "subscription": "Abonnement",
     "profile": "Profil",
     "logout": "Déconnexion"
   },
@@ -106,6 +107,59 @@
     "noConversations": "Aucune conversation",
     "noConversationsText": "Commencez à chatter avec vos matchs !",
     "unread": "non lu"
+  },
+  "subscription": {
+    "title": "Abonnement",
+    "status": "Statut de l'abonnement",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "expires": "Expire le",
+    "conversations": "Conversations",
+    "conversationsUsed": "{{count}} / {{limit}} conversations gratuites utilisées",
+    "conversationsRemaining": "{{count}} conversations restantes",
+    "unlimitedConversations": "Conversations illimitées",
+    "choosePlan": "Choisissez votre formule",
+    "currentPlan": "Formule actuelle",
+    "plan24h": {
+      "name": "Accès 24 heures",
+      "duration": "24 heures",
+      "description": "Accès complet pendant 24 heures"
+    },
+    "planMonthly": {
+      "name": "Abonnement Mensuel",
+      "duration": "mois",
+      "description": "Conversations illimitées pendant 1 mois",
+      "savings": "Économisez 20%"
+    },
+    "planYearly": {
+      "name": "Abonnement Annuel",
+      "duration": "an",
+      "description": "Conversations illimitées pendant 1 an",
+      "savings": "Économisez 50%"
+    },
+    "selectPlan": "Sélectionner",
+    "paymentMethod": "Méthode de paiement",
+    "cardNumber": "Numéro de carte",
+    "expiryDate": "Date d'expiration",
+    "cvc": "CVC",
+    "subscribe": "S'abonner",
+    "processing": "Traitement en cours...",
+    "success": "Abonnement activé avec succès !",
+    "error": "Erreur lors du paiement",
+    "required": "Abonnement requis",
+    "limitReached": "Vous avez atteint la limite de <strong>5 conversations gratuites</strong>.",
+    "unlockUnlimited": "Abonnez-vous maintenant pour débloquer des conversations illimitées avec tous vos matchs !",
+    "viewPlans": "Voir les formules",
+    "freeNote": "Vous pouvez toujours discuter avec vos 5 premiers matchs gratuitement !",
+    "confirmCancel": "Êtes-vous sûr de vouloir annuler votre abonnement ?",
+    "cancelSuccess": "Abonnement annulé avec succès",
+    "cancelError": "Erreur lors de l'annulation de l'abonnement",
+    "cancelled": "Paiement annulé",
+    "loadingPayment": "Chargement du formulaire de paiement...",
+    "cancelButton": "Annuler l'abonnement",
+    "cancelledNotice": "Abonnement annulé",
+    "willNotRenew": "Ne se renouvellera pas automatiquement",
+    "autoRenew": "Se renouvelle automatiquement"
   },
   "common": {
     "error": "Une erreur s'est produite",

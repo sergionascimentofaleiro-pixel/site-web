@@ -2,7 +2,9 @@
   "nav": {
     "discover": "Discover",
     "matches": "Matches",
+    "messages": "Messages",
     "chat": "Chat",
+    "subscription": "Subscription",
     "profile": "Profile",
     "logout": "Logout"
   },
@@ -90,6 +92,74 @@
     "matchesPlural": "matches",
     "message": "Message",
     "unmatch": "Unmatch"
+  },
+  "chat": {
+    "back": "Back",
+    "loading": "Loading messages...",
+    "noMessages": "No messages yet",
+    "startConversation": "Send the first message to start the conversation!",
+    "typePlaceholder": "Type your message...",
+    "send": "Send"
+  },
+  "messages": {
+    "title": "Messages",
+    "loading": "Loading conversations...",
+    "noConversations": "No conversations",
+    "noConversationsText": "Start chatting with your matches!",
+    "unread": "unread"
+  },
+  "subscription": {
+    "title": "Subscription",
+    "status": "Subscription Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "expires": "Expires on",
+    "conversations": "Conversations",
+    "conversationsUsed": "{{count}} / {{limit}} free conversations used",
+    "conversationsRemaining": "{{count}} conversations remaining",
+    "unlimitedConversations": "Unlimited conversations",
+    "choosePlan": "Choose Your Plan",
+    "currentPlan": "Current Plan",
+    "plan24h": {
+      "name": "24 Hours Access",
+      "duration": "24 hours",
+      "description": "Full access for 24 hours"
+    },
+    "planMonthly": {
+      "name": "Monthly Subscription",
+      "duration": "month",
+      "description": "Unlimited conversations for 1 month",
+      "savings": "Save 20%"
+    },
+    "planYearly": {
+      "name": "Yearly Subscription",
+      "duration": "year",
+      "description": "Unlimited conversations for 1 year",
+      "savings": "Save 50%"
+    },
+    "selectPlan": "Select",
+    "paymentMethod": "Payment Method",
+    "cardNumber": "Card Number",
+    "expiryDate": "Expiry Date",
+    "cvc": "CVC",
+    "subscribe": "Subscribe",
+    "processing": "Processing...",
+    "success": "Subscription activated successfully!",
+    "error": "Payment error",
+    "required": "Subscription Required",
+    "limitReached": "You've reached the limit of <strong>5 free conversations</strong>.",
+    "unlockUnlimited": "Subscribe now to unlock unlimited conversations with all your matches!",
+    "viewPlans": "View Subscription Plans",
+    "freeNote": "You can still chat with your first 5 matches for free!",
+    "confirmCancel": "Are you sure you want to cancel your subscription?",
+    "cancelSuccess": "Subscription cancelled successfully",
+    "cancelError": "Error cancelling subscription",
+    "cancelled": "Payment cancelled",
+    "loadingPayment": "Loading payment form...",
+    "cancelButton": "Cancel Subscription",
+    "cancelledNotice": "Subscription cancelled",
+    "willNotRenew": "Will not renew automatically",
+    "autoRenew": "Renews automatically"
   },
   "common": {
     "error": "An error occurred",

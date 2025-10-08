@@ -134,7 +134,11 @@ def create_test_users(cursor):
 
     users_created = 0
 
+    # Get city ID for Orleans
+    orleans_id = get_city_id(cursor, 'Orleans')
+
     # Create 200 men
+    # First 20 in Orléans, remaining 180 random
     for i in range(200):
         first_name = random.choice(MALE_NAMES)
         last_name = random.choice(LAST_NAMES)
@@ -148,8 +152,11 @@ def create_test_users(cursor):
         """, (email, password))
         user_id = cursor.lastrowid
 
-        # Get random city
-        city_id = get_random_french_city(cursor)
+        # Assign city: First 20 in Orléans, rest random
+        if i < 20 and orleans_id:
+            city_id = orleans_id
+        else:
+            city_id = get_random_french_city(cursor)
 
         # Create profile
         birth_date = get_random_date_of_birth()
@@ -178,9 +185,8 @@ def create_test_users(cursor):
         if users_created % 50 == 0:
             print(f"  Created {users_created} users...")
 
-    # Get city IDs for Paris and Orleans
+    # Get city ID for Paris
     paris_id = get_city_id(cursor, 'Paris')
-    orleans_id = get_city_id(cursor, 'Orleans')
 
     # Create 200 women
     # First 50 in Paris, next 15 in Orléans, remaining 135 random
@@ -263,7 +269,9 @@ def main():
         conn.commit()
         print("\n=== Test Data Generation Complete ===")
         print("You can now login with:")
-        print("  Men: homme1@test.fr to homme200@test.fr (random French cities)")
+        print("  Men: homme1@test.fr to homme200@test.fr")
+        print("    - homme1 to homme20: Orléans")
+        print("    - homme21 to homme200: Random French cities")
         print("  Women: femme1@test.fr to femme200@test.fr")
         print("    - femme1 to femme50: Paris")
         print("    - femme51 to femme65: Orléans")

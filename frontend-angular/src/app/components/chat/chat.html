@@ -19,8 +19,24 @@
     }
   </div>
 
+  <!-- Subscription Required Message -->
+  @if (accessDenied() && requiresSubscription()) {
+    <div class="subscription-required">
+      <div class="subscription-prompt">
+        <div class="lock-icon">🔒</div>
+        <h2>{{ 'subscription.required' | translate }}</h2>
+        <p [innerHTML]="'subscription.limitReached' | translate"></p>
+        <p>{{ 'subscription.unlockUnlimited' | translate }}</p>
+        <button class="btn-subscribe" (click)="goToSubscription()">
+          💎 {{ 'subscription.viewPlans' | translate }}
+        </button>
+        <p class="note">{{ 'subscription.freeNote' | translate }}</p>
+      </div>
+    </div>
+  }
+
   <!-- Messages List -->
-  <div class="messages-list">
+  <div class="messages-list" [class.hidden]="accessDenied()">
     @if (isLoading()) {
       <div class="loading">
         <p>{{ 'chat.loading' | translate }}</p>
@@ -47,7 +63,7 @@
   </div>
 
   <!-- Message Input -->
-  <div class="message-input-container">
+  <div class="message-input-container" [class.hidden]="accessDenied()">
     @if (isTyping()) {
       <div class="typing-indicator">
         <span class="typing-text">{{ match()!.otherUser.name }} est en train d'écrire...</span>

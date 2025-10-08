@@ -2,7 +2,9 @@
   "nav": {
     "discover": "Descobrir",
     "matches": "Matches",
+    "messages": "Mensagens",
     "chat": "Chat",
+    "subscription": "Assinatura",
     "profile": "Perfil",
     "logout": "Sair"
   },
@@ -90,6 +92,74 @@
     "matchesPlural": "matches",
     "message": "Mensagem",
     "unmatch": "Desfazer match"
+  },
+  "chat": {
+    "back": "Voltar",
+    "loading": "Carregando mensagens...",
+    "noMessages": "Nenhuma mensagem ainda",
+    "startConversation": "Envie a primeira mensagem para começar a conversa!",
+    "typePlaceholder": "Digite sua mensagem...",
+    "send": "Enviar"
+  },
+  "messages": {
+    "title": "Mensagens",
+    "loading": "Carregando conversas...",
+    "noConversations": "Nenhuma conversa",
+    "noConversationsText": "Comece a conversar com seus matches!",
+    "unread": "não lida"
+  },
+  "subscription": {
+    "title": "Assinatura",
+    "status": "Status da assinatura",
+    "active": "Ativa",
+    "inactive": "Inativa",
+    "expires": "Expira em",
+    "conversations": "Conversas",
+    "conversationsUsed": "{{count}} / {{limit}} conversas gratuitas usadas",
+    "conversationsRemaining": "{{count}} conversas restantes",
+    "unlimitedConversations": "Conversas ilimitadas",
+    "choosePlan": "Escolha seu plano",
+    "currentPlan": "Plano atual",
+    "plan24h": {
+      "name": "Acesso 24 horas",
+      "duration": "24 horas",
+      "description": "Acesso completo durante 24 horas"
+    },
+    "planMonthly": {
+      "name": "Assinatura Mensal",
+      "duration": "mês",
+      "description": "Conversas ilimitadas durante 1 mês",
+      "savings": "Economize 20%"
+    },
+    "planYearly": {
+      "name": "Assinatura Anual",
+      "duration": "ano",
+      "description": "Conversas ilimitadas durante 1 ano",
+      "savings": "Economize 50%"
+    },
+    "selectPlan": "Selecionar",
+    "paymentMethod": "Método de pagamento",
+    "cardNumber": "Número do cartão",
+    "expiryDate": "Data de validade",
+    "cvc": "CVC",
+    "subscribe": "Assinar",
+    "processing": "Processando...",
+    "success": "Assinatura ativada com sucesso!",
+    "error": "Erro no pagamento",
+    "required": "Assinatura necessária",
+    "limitReached": "Você atingiu o limite de <strong>5 conversas gratuitas</strong>.",
+    "unlockUnlimited": "Assine agora para desbloquear conversas ilimitadas com todos os seus matches!",
+    "viewPlans": "Ver planos de assinatura",
+    "freeNote": "Você ainda pode conversar com seus primeiros 5 matches gratuitamente!",
+    "confirmCancel": "Tem certeza de que deseja cancelar sua assinatura?",
+    "cancelSuccess": "Assinatura cancelada com sucesso",
+    "cancelError": "Erro ao cancelar assinatura",
+    "cancelled": "Pagamento cancelado",
+    "loadingPayment": "Carregando formulário de pagamento...",
+    "cancelButton": "Cancelar assinatura",
+    "cancelledNotice": "Assinatura cancelada",
+    "willNotRenew": "Não será renovada automaticamente",
+    "autoRenew": "Renova automaticamente"
   },
   "common": {
     "error": "Ocorreu um erro",

@@ -1,0 +1,123 @@
+<div class="subscription-container">
+  <h1>💎 {{ 'subscription.title' | translate }}</h1>
+
+  @if (successMessage()) {
+    <div class="success-message">
+      {{ successMessage() }}
+    </div>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-message">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  @if (isLoading()) {
+    <div class="loading">
+      <p>{{ 'chat.loading' | translate }}</p>
+    </div>
+  }
+
+  @if (!isLoading() && status()) {
+    <!-- Current Status -->
+    <div class="status-card">
+      <h2>{{ 'subscription.status' | translate }}</h2>
+
+      @if (status()!.hasSubscription) {
+        <div class="subscription-active">
+          <div class="status-badge active">✓ {{ 'subscription.active' | translate }}</div>
+          <p class="subscription-type">{{ getSubscriptionTypeName() }}</p>
+          <p class="subscription-end">
+            {{ 'subscription.expires' | translate }}: {{ status()!.subscription!.end_date | date: 'medium' }}
+          </p>
+
+          @if (isCancelled()) {
+            <div class="cancellation-notice">
+              <p class="cancelled-info">⚠️ {{ 'subscription.cancelledNotice' | translate }}</p>
+              @if (!willRenew()) {
+                <p class="no-renew">{{ 'subscription.willNotRenew' | translate }}</p>
+              }
+            </div>
+          } @else {
+            @if (willRenew()) {
+              <p class="auto-renew">🔄 {{ 'subscription.autoRenew' | translate }}</p>
+            }
+            @if (canCancelSubscription()) {
+              <button class="btn-cancel" (click)="cancelSubscription()">
+                {{ 'subscription.cancelButton' | translate }}
+              </button>
+            }
+          }
+        </div>
+      } @else {
+        <div class="subscription-free">
+          <div class="status-badge free">{{ 'subscription.inactive' | translate }}</div>
+          <div class="conversation-counter">
+            <p><strong>{{ 'subscription.conversations' | translate }}:</strong>
+              {{ status()!.conversationCount }} / {{ status()!.freeLimit }}
+            </p>
+            <div class="progress-bar">
+              <div class="progress-fill"
+                   [style.width.%]="getProgressPercentage()"
+                   [style.backgroundColor]="getProgressColor()"></div>
+            </div>
+            @if (status()!.conversationsRemaining > 0) {
+              <p class="remaining">
+                {{ 'subscription.conversationsRemaining' | translate: {count: status()!.conversationsRemaining} }}
+              </p>
+            } @else {
+              <p class="limit-reached" [innerHTML]="'subscription.limitReached' | translate"></p>
+              <p class="upgrade-hint">
+                {{ 'subscription.unlockUnlimited' | translate }}
+              </p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Plans -->
+    @if (!status()!.hasSubscription) {
+      <div class="plans-section">
+        <h2>{{ 'subscription.choosePlan' | translate }}</h2>
+
+        <div class="plans-grid">
+          @for (plan of plans(); track plan.id) {
+            <div class="plan-card" [class.selected]="selectedPlan() === plan.id">
+              <h3>{{ plan.nameKey | translate }}</h3>
+              <div class="plan-price">
+                <span class="amount">€{{ plan.price }}</span>
+                <span class="duration">/ {{ plan.durationKey | translate }}</span>
+              </div>
+              <p class="plan-description">{{ plan.descriptionKey | translate }}</p>
+              @if (plan.savingsKey) {
+                <div class="savings-badge">💰 {{ plan.savingsKey | translate }}</div>
+              }
+
+              @if (selectedPlan() === plan.id && showPayPal()) {
+                @if (paypalRendering()) {
+                  <div class="paypal-loading">
+                    <div class="spinner"></div>
+                    <p>{{ 'subscription.loadingPayment' | translate }}</p>
+                  </div>
+                }
+                <div [id]="'paypal-button-container-' + plan.id" class="paypal-button-container"></div>
+                <button class="btn-cancel-payment" (click)="showPayPal.set(false); selectedPlan.set(null); paypalRendering.set(false)">
+                  {{ 'common.cancel' | translate }}
+                </button>
+              } @else {
+                <button
+                  class="btn-select"
+                  (click)="selectPlan(plan.id)"
+                  [disabled]="isProcessing() || showPayPal()">
+                  {{ isProcessing() && selectedPlan() === plan.id ? ('subscription.processing' | translate) : ('subscription.selectPlan' | translate) }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -2,7 +2,9 @@
   "nav": {
     "discover": "Descubrir",
     "matches": "Matches",
+    "messages": "Mensajes",
     "chat": "Chat",
+    "subscription": "Suscripción",
     "profile": "Perfil",
     "logout": "Cerrar sesión"
   },
@@ -90,6 +92,74 @@
     "matchesPlural": "matches",
     "message": "Mensaje",
     "unmatch": "Eliminar match"
+  },
+  "chat": {
+    "back": "Volver",
+    "loading": "Cargando mensajes...",
+    "noMessages": "No hay mensajes todavía",
+    "startConversation": "¡Envía el primer mensaje para comenzar la conversación!",
+    "typePlaceholder": "Escribe tu mensaje...",
+    "send": "Enviar"
+  },
+  "messages": {
+    "title": "Mensajes",
+    "loading": "Cargando conversaciones...",
+    "noConversations": "No hay conversaciones",
+    "noConversationsText": "¡Empieza a chatear con tus matches!",
+    "unread": "no leído"
+  },
+  "subscription": {
+    "title": "Suscripción",
+    "status": "Estado de suscripción",
+    "active": "Activa",
+    "inactive": "Inactiva",
+    "expires": "Expira el",
+    "conversations": "Conversaciones",
+    "conversationsUsed": "{{count}} / {{limit}} conversaciones gratuitas usadas",
+    "conversationsRemaining": "{{count}} conversaciones restantes",
+    "unlimitedConversations": "Conversaciones ilimitadas",
+    "choosePlan": "Elige tu plan",
+    "currentPlan": "Plan actual",
+    "plan24h": {
+      "name": "Acceso 24 horas",
+      "duration": "24 horas",
+      "description": "Acceso completo durante 24 horas"
+    },
+    "planMonthly": {
+      "name": "Suscripción Mensual",
+      "duration": "mes",
+      "description": "Conversaciones ilimitadas durante 1 mes",
+      "savings": "Ahorra 20%"
+    },
+    "planYearly": {
+      "name": "Suscripción Anual",
+      "duration": "año",
+      "description": "Conversaciones ilimitadas durante 1 año",
+      "savings": "Ahorra 50%"
+    },
+    "selectPlan": "Seleccionar",
+    "paymentMethod": "Método de pago",
+    "cardNumber": "Número de tarjeta",
+    "expiryDate": "Fecha de vencimiento",
+    "cvc": "CVC",
+    "subscribe": "Suscribirse",
+    "processing": "Procesando...",
+    "success": "¡Suscripción activada con éxito!",
+    "error": "Error en el pago",
+    "required": "Suscripción requerida",
+    "limitReached": "Has alcanzado el límite de <strong>5 conversaciones gratuitas</strong>.",
+    "unlockUnlimited": "¡Suscríbete ahora para desbloquear conversaciones ilimitadas con todos tus matches!",
+    "viewPlans": "Ver planes de suscripción",
+    "freeNote": "¡Puedes seguir chateando con tus primeros 5 matches gratis!",
+    "confirmCancel": "¿Estás seguro de que quieres cancelar tu suscripción?",
+    "cancelSuccess": "Suscripción cancelada con éxito",
+    "cancelError": "Error al cancelar la suscripción",
+    "cancelled": "Pago cancelado",
+    "loadingPayment": "Cargando formulario de pago...",
+    "cancelButton": "Cancelar suscripción",
+    "cancelledNotice": "Suscripción cancelada",
+    "willNotRenew": "No se renovará automáticamente",
+    "autoRenew": "Se renueva automáticamente"
   },
   "common": {
     "error": "Ocurrió un error",

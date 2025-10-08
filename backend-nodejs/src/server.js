@@ -15,6 +15,7 @@ const matchRoutes = require('./routes/match');
 const messageRoutes = require('./routes/message');
 const interestRoutes = require('./routes/interest');
 const locationRoutes = require('./routes/location');
+const subscriptionRoutes = require('./routes/subscription');
 
 const app = express();
 const server = http.createServer(app);
@@ -44,6 +45,7 @@ app.use('/api/matches', matchRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/interests', interestRoutes);
 app.use('/api/locations', locationRoutes);
+app.use('/api/subscription', subscriptionRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -100,11 +102,27 @@ io.on('connection', (socket) => {
     try {
       console.log(`[WebSocket] User ${userId} sending message to match ${matchId}`);
 
-      // Import Message model
+      // Import models
       const Message = require('./models/Message');
+      const Subscription = require('./models/Subscription');
+
+      // Check if user can access this conversation
+      const canAccessResult = await Subscription.canAccessConversation(userId, matchId);
+      if (!canAccessResult.canAccess) {
+        socket.emit('message:error', {
+          error: 'Conversation limit reached',
+          conversationCount: canAccessResult.conversationCount,
+          limit: canAccessResult.limit,
+          requiresSubscription: true
+        });
+        return;
+      }
 
       // Save message to database
       const messageId = await Message.create(matchId, userId, receiverId, message);
+
+      // Add conversation to user's list (if not already there)
+      await Subscription.addConversation(userId, matchId);
 
       // Get the full message data
       const savedMessage = await Message.getById(messageId);
@@ -150,8 +168,20 @@ io.on('connection', (socket) => {
 // Make io accessible to routes
 app.set('io', io);
 
-// Start server
-server.listen(PORT, () => {
-  console.log(`Dating app server is running on port ${PORT}`);
-  console.log(`WebSocket server is ready`);
-});
+// Setup scheduled tasks
+const { setupScheduler } = require('./scheduler');
+
+// Start server only if not in test mode
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(PORT, () => {
+    console.log(`Dating app server is running on port ${PORT}`);
+    console.log(`WebSocket server is ready`);
+
+    // Initialize scheduler
+    setupScheduler();
+  });
+}
+
+// Export app and server for testing
+module.exports = app;
+module.exports.server = server;
