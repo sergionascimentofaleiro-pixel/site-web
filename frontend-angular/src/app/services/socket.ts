@@ -1,6 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Auth } from './auth';
+import { Subject, Observable } from 'rxjs';
 
 export interface MessageData {
   id: number;
@@ -20,6 +21,22 @@ export interface MessageData {
 export class SocketService {
   private socket: Socket | null = null;
   private isConnected = signal(false);
+  private listenersInitialized = false;
+
+  // Subjects for broadcasting events (only one instance per event)
+  private newMessageSubject = new Subject<MessageData>();
+  private messageErrorSubject = new Subject<any>();
+  private messageNotificationSubject = new Subject<{ matchId: number; message: MessageData }>();
+  private typingSubject = new Subject<{ matchId: number; userId: number }>();
+  private stopTypingSubject = new Subject<{ matchId: number; userId: number }>();
+
+  // Public observables that components can subscribe to
+  public newMessage$: Observable<MessageData> = this.newMessageSubject.asObservable();
+  public messageError$: Observable<any> = this.messageErrorSubject.asObservable();
+  public messageNotification$: Observable<{ matchId: number; message: MessageData }> =
+    this.messageNotificationSubject.asObservable();
+  public typing$: Observable<{ matchId: number; userId: number }> = this.typingSubject.asObservable();
+  public stopTyping$: Observable<{ matchId: number; userId: number }> = this.stopTypingSubject.asObservable();
 
   constructor(private authService: Auth) {}
 
@@ -62,6 +79,39 @@ export class SocketService {
       console.error('❌ WebSocket connection error:', error.message);
       this.isConnected.set(false);
     });
+
+    // Initialize event listeners ONCE
+    this.initializeListeners();
+  }
+
+  private initializeListeners(): void {
+    if (this.listenersInitialized || !this.socket) {
+      return;
+    }
+
+    console.log('Initializing WebSocket listeners (once)');
+    this.listenersInitialized = true;
+
+    // Setup listeners that emit to Subjects
+    this.socket.on('message:new', (message: MessageData) => {
+      this.newMessageSubject.next(message);
+    });
+
+    this.socket.on('message:error', (error: any) => {
+      this.messageErrorSubject.next(error);
+    });
+
+    this.socket.on('message:notification', (data: { matchId: number; message: MessageData }) => {
+      this.messageNotificationSubject.next(data);
+    });
+
+    this.socket.on('typing:user', (data: { matchId: number; userId: number }) => {
+      this.typingSubject.next(data);
+    });
+
+    this.socket.on('typing:stop', (data: { matchId: number; userId: number }) => {
+      this.stopTypingSubject.next(data);
+    });
   }
 
   disconnect(): void {
@@ -90,24 +140,6 @@ export class SocketService {
     }
   }
 
-  onNewMessage(callback: (message: MessageData) => void): void {
-    if (this.socket) {
-      this.socket.on('message:new', callback);
-    }
-  }
-
-  onMessageError(callback: (error: any) => void): void {
-    if (this.socket) {
-      this.socket.on('message:error', callback);
-    }
-  }
-
-  onMessageNotification(callback: (data: { matchId: number; message: MessageData }) => void): void {
-    if (this.socket) {
-      this.socket.on('message:notification', callback);
-    }
-  }
-
   startTyping(matchId: number, receiverId: number): void {
     if (this.socket) {
       this.socket.emit('typing:start', { matchId, receiverId });
@@ -117,18 +149,6 @@ export class SocketService {
   stopTyping(matchId: number, receiverId: number): void {
     if (this.socket) {
       this.socket.emit('typing:stop', { matchId, receiverId });
-    }
-  }
-
-  onTyping(callback: (data: { matchId: number; userId: number }) => void): void {
-    if (this.socket) {
-      this.socket.on('typing:user', callback);
-    }
-  }
-
-  onStopTyping(callback: (data: { matchId: number; userId: number }) => void): void {
-    if (this.socket) {
-      this.socket.on('typing:stop', callback);
     }
   }
 

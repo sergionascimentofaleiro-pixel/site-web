@@ -8,6 +8,7 @@ import { Auth } from '../../services/auth';
 import { SocketService } from '../../services/socket';
 import { Subscription as SubscriptionService } from '../../services/subscription';
 import { TranslateModule } from '@ngx-translate/core';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-chat',
@@ -30,6 +31,7 @@ export class Chat implements OnInit, OnDestroy {
   requiresSubscription = signal(false);
 
   private typingTimeout: any;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private route: ActivatedRoute,
@@ -51,54 +53,64 @@ export class Chat implements OnInit, OnDestroy {
     // Connect to WebSocket
     this.socketService.connect();
 
-    // Setup WebSocket event listeners
-    this.socketService.onNewMessage((message) => {
-      // Add message to list if it belongs to this conversation
-      if (message.match_id === this.matchId()) {
-        // Check if message already exists to avoid duplicates
-        this.messages.update(messages => {
-          const exists = messages.some(m => m.id === message.id);
-          if (exists) {
-            return messages; // Don't add duplicate
+    // Subscribe to WebSocket events (clean subscriptions, no memory leaks)
+    this.subscriptions.push(
+      this.socketService.newMessage$.subscribe((message) => {
+        // Add message to list if it belongs to this conversation
+        if (message.match_id === this.matchId()) {
+          // Check if message already exists to avoid duplicates
+          this.messages.update(messages => {
+            const exists = messages.some(m => m.id === message.id);
+            if (exists) {
+              return messages; // Don't add duplicate
+            }
+            return [...messages, message];
+          });
+          setTimeout(() => this.scrollToBottom(), 100);
+          this.isSending.set(false);
+
+          // Mark the new message as read if it's from the other user
+          if (message.sender_id !== this.currentUserId()) {
+            this.markMessagesAsRead(this.matchId()!);
           }
-          return [...messages, message];
-        });
-        setTimeout(() => this.scrollToBottom(), 100);
-        this.isSending.set(false);
-
-        // Mark the new message as read if it's from the other user
-        if (message.sender_id !== this.currentUserId()) {
-          this.markMessagesAsRead(this.matchId()!);
         }
-      }
-    });
+      })
+    );
 
-    this.socketService.onMessageError((error) => {
-      console.error('Message error:', error);
-      alert('Erreur lors de l\'envoi du message');
-      this.isSending.set(false);
-    });
+    this.subscriptions.push(
+      this.socketService.messageError$.subscribe((error) => {
+        console.error('Message error:', error);
+        alert('Erreur lors de l\'envoi du message');
+        this.isSending.set(false);
+      })
+    );
 
-    this.socketService.onTyping((data) => {
-      if (data.matchId === this.matchId() && data.userId !== this.currentUserId()) {
-        this.isTyping.set(true);
-      }
-    });
+    this.subscriptions.push(
+      this.socketService.typing$.subscribe((data) => {
+        if (data.matchId === this.matchId() && data.userId !== this.currentUserId()) {
+          this.isTyping.set(true);
+        }
+      })
+    );
 
-    this.socketService.onStopTyping((data) => {
-      if (data.matchId === this.matchId()) {
-        this.isTyping.set(false);
-      }
-    });
+    this.subscriptions.push(
+      this.socketService.stopTyping$.subscribe((data) => {
+        if (data.matchId === this.matchId()) {
+          this.isTyping.set(false);
+        }
+      })
+    );
 
     // Get matchId from route
-    this.route.params.subscribe(params => {
-      const matchId = parseInt(params['matchId']);
-      if (matchId) {
-        this.matchId.set(matchId);
-        this.checkConversationAccess(matchId);
-      }
-    });
+    this.subscriptions.push(
+      this.route.params.subscribe(params => {
+        const matchId = parseInt(params['matchId']);
+        if (matchId) {
+          this.matchId.set(matchId);
+          this.checkConversationAccess(matchId);
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -114,8 +126,9 @@ export class Chat implements OnInit, OnDestroy {
       clearTimeout(this.typingTimeout);
     }
 
-    // DO NOT remove listeners here - SocketService is a singleton
-    // and other components may be using it
+    // Unsubscribe from all observables (prevents memory leaks)
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions = [];
   }
 
   private markMessagesAsRead(matchId: number): void {

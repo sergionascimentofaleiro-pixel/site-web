@@ -1,7 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subscription } from 'rxjs';
 import { Match as MatchService, MatchData } from '../../services/match';
 import { Message as MessageService } from '../../services/message';
 import { SocketService } from '../../services/socket';
@@ -19,9 +19,11 @@ interface ConversationPreview extends MatchData {
   templateUrl: './messages.html',
   styleUrl: './messages.scss'
 })
-export class Messages implements OnInit {
+export class Messages implements OnInit, OnDestroy {
   conversations = signal<ConversationPreview[]>([]);
   isLoading = signal(true);
+
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private matchService: MatchService,
@@ -34,13 +36,21 @@ export class Messages implements OnInit {
     // Connect to WebSocket
     this.socketService.connect();
 
-    // Listen for new message notifications
-    this.socketService.onMessageNotification((data) => {
-      // Update the conversation with new message
-      this.updateConversationWithNewMessage(data.matchId, data.message);
-    });
+    // Subscribe to new message notifications
+    this.subscriptions.push(
+      this.socketService.messageNotification$.subscribe((data) => {
+        // Update the conversation with new message
+        this.updateConversationWithNewMessage(data.matchId, data.message);
+      })
+    );
 
     this.loadConversations();
+  }
+
+  ngOnDestroy(): void {
+    // Unsubscribe from all observables (prevents memory leaks)
+    this.subscriptions.forEach(sub => sub.unsubscribe());
+    this.subscriptions = [];
   }
 
   loadConversations(): void {
