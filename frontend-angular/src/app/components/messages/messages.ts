@@ -158,4 +158,12 @@ export class Messages implements OnInit {
     if (!message) return 'Aucun message';
     return message.length > 50 ? message.substring(0, 50) + '...' : message;
   }
+
+  getPhotoUrl(url: string): string {
+    // If it's a relative URL (uploaded file), prepend backend URL
+    if (url && url.startsWith('/uploads/')) {
+      return `http://localhost:3000${url}`;
+    }
+    return url;
+  }
 }

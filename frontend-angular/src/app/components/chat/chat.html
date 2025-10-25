@@ -9,7 +9,7 @@
       <div class="match-info">
         <div class="match-photo-small">
           @if (match()!.otherUser.photo) {
-            <img [src]="match()!.otherUser.photo" [alt]="match()!.otherUser.name" />
+            <img [src]="getPhotoUrl(match()!.otherUser.photo)" [alt]="match()!.otherUser.name" />
           } @else {
             <div class="no-photo-small">{{ match()!.otherUser.name.charAt(0) }}</div>
           }

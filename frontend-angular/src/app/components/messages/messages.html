@@ -30,7 +30,7 @@
 
           <div class="conversation-photo">
             @if (conversation.otherUser.photo) {
-              <img [src]="conversation.otherUser.photo" [alt]="conversation.otherUser.name" />
+              <img [src]="getPhotoUrl(conversation.otherUser.photo)" [alt]="conversation.otherUser.name" />
             } @else {
               <div class="no-photo">
                 {{ conversation.otherUser.name.charAt(0) }}

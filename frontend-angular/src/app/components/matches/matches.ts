@@ -91,4 +91,12 @@ export class Matches implements OnInit {
     if (diffDays < 7) return `Il y a ${diffDays} jours`;
     return matchDate.toLocaleDateString('fr-FR');
   }
+
+  getPhotoUrl(url: string): string {
+    // If it's a relative URL (uploaded file), prepend backend URL
+    if (url && url.startsWith('/uploads/')) {
+      return `http://localhost:3000${url}`;
+    }
+    return url;
+  }
 }

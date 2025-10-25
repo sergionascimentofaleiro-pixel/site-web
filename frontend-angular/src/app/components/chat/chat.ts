@@ -300,4 +300,12 @@ export class Chat implements OnInit, OnDestroy {
       this.sendMessage();
     }
   }
+
+  getPhotoUrl(url: string): string {
+    // If it's a relative URL (uploaded file), prepend backend URL
+    if (url && url.startsWith('/uploads/')) {
+      return `http://localhost:3000${url}`;
+    }
+    return url;
+  }
 }

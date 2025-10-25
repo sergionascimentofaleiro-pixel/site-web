@@ -37,7 +37,7 @@
           <div class="match-card">
             <div class="match-photo">
               @if (match.otherUser.photo) {
-                <img [src]="match.otherUser.photo" [alt]="match.otherUser.name" />
+                <img [src]="getPhotoUrl(match.otherUser.photo)" [alt]="match.otherUser.name" />
               } @else {
                 <div class="no-photo">{{ match.otherUser.name.charAt(0) }}</div>
               }
