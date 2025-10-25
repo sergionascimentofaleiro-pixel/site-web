@@ -6,51 +6,52 @@ USE dating_app;
 -- Create test users and profiles for MEN
 -- Password for all: Test123! (hashed with bcrypt)
 -- Hash: $2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2
+-- is_test_account = TRUE to differentiate from real user signups
 
-INSERT INTO users (email, password_hash) VALUES
-('john.smith@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('michael.jones@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('david.wilson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('james.brown@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('robert.taylor@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('william.anderson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('thomas.martin@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('charles.garcia@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('daniel.martinez@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('matthew.rodriguez@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('christopher.lee@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('andrew.clark@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('joshua.lewis@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('ryan.walker@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('brandon.hall@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('kevin.young@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('justin.king@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('benjamin.wright@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('samuel.scott@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('alexander.green@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2');
+INSERT INTO users (email, password_hash, is_test_account) VALUES
+('john.smith@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('michael.jones@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('david.wilson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('james.brown@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('robert.taylor@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('william.anderson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('thomas.martin@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('charles.garcia@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('daniel.martinez@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('matthew.rodriguez@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('christopher.lee@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('andrew.clark@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('joshua.lewis@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('ryan.walker@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('brandon.hall@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('kevin.young@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('justin.king@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('benjamin.wright@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('samuel.scott@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('alexander.green@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE);
 
 -- Create test users for WOMEN
-INSERT INTO users (email, password_hash) VALUES
-('emma.johnson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('olivia.williams@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('sophia.davis@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('isabella.miller@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('mia.wilson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('charlotte.moore@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('amelia.taylor@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('harper.anderson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('evelyn.thomas@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('abigail.jackson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('emily.white@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('madison.harris@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('elizabeth.martin@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('sofia.garcia@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('avery.martinez@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('ella.robinson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('scarlett.clark@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('grace.rodriguez@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('chloe.lewis@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2'),
-('victoria.lee@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2');
+INSERT INTO users (email, password_hash, is_test_account) VALUES
+('emma.johnson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('olivia.williams@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('sophia.davis@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('isabella.miller@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('mia.wilson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('charlotte.moore@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('amelia.taylor@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('harper.anderson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('evelyn.thomas@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('abigail.jackson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('emily.white@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('madison.harris@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('elizabeth.martin@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('sofia.garcia@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('avery.martinez@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('ella.robinson@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('scarlett.clark@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('grace.rodriguez@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('chloe.lewis@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE),
+('victoria.lee@test.com', '$2b$10$fZ/7bUSPMEmfSziaojOHruNmNJTYLPhXHEiQuYNL8eTOg3qvX/SY2', TRUE);
 
 -- Create profiles for MEN
 INSERT INTO profiles (user_id, first_name, birth_date, gender, looking_for, bio, location, interests, profile_photo) VALUES

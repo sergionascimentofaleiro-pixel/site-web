@@ -6,11 +6,13 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     preferred_language VARCHAR(5) DEFAULT 'fr',
+    is_test_account BOOLEAN DEFAULT FALSE COMMENT 'Internal flag to differentiate test/seed accounts from real users',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login TIMESTAMP NULL,
     is_active BOOLEAN DEFAULT FALSE,
-    INDEX idx_email (email)
+    INDEX idx_email (email),
+    INDEX idx_test_account (is_test_account)
 );
 
 -- User profiles
