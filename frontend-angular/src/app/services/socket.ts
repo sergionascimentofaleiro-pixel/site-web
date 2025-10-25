@@ -132,12 +132,6 @@ export class SocketService {
     }
   }
 
-  removeAllListeners(): void {
-    if (this.socket) {
-      this.socket.removeAllListeners();
-    }
-  }
-
   getConnectionStatus(): boolean {
     return this.isConnected();
   }

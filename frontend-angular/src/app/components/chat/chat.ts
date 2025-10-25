@@ -114,8 +114,8 @@ export class Chat implements OnInit, OnDestroy {
       clearTimeout(this.typingTimeout);
     }
 
-    // Remove listeners
-    this.socketService.removeAllListeners();
+    // DO NOT remove listeners here - SocketService is a singleton
+    // and other components may be using it
   }
 
   private markMessagesAsRead(matchId: number): void {
