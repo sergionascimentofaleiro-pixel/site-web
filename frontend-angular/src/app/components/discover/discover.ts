@@ -111,7 +111,14 @@ export class Discover implements OnInit {
     this.profileService.getPotentialMatches(10, this.currentLanguage).subscribe({
       next: (newProfiles) => {
         const current = this.profiles();
-        this.profiles.set([...current, ...newProfiles]);
+        // Filter out duplicates by checking user_id
+        const currentUserIds = new Set(current.map(p => p.user_id));
+        const uniqueNewProfiles = newProfiles.filter(p => !currentUserIds.has(p.user_id));
+
+        // Only add profiles that are not already in the list
+        if (uniqueNewProfiles.length > 0) {
+          this.profiles.set([...current, ...uniqueNewProfiles]);
+        }
       },
       error: (error) => {
         console.error('Error loading more profiles:', error);
