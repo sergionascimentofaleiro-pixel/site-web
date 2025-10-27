@@ -14,7 +14,17 @@
             <div class="no-photo-small">{{ match()!.otherUser.name.charAt(0) }}</div>
           }
         </div>
-        <h2>{{ match()!.otherUser.name }}</h2>
+        <div class="match-details">
+          <h2>
+            {{ match()!.otherUser.name }}
+            @if (getAge(match()!.otherUser.birthDate)) {
+              <span class="chat-age">, {{ getAge(match()!.otherUser.birthDate) }} ans</span>
+            }
+          </h2>
+          @if (getLocation(match()!.otherUser.city, match()!.otherUser.country)) {
+            <p class="chat-location">📍 {{ getLocation(match()!.otherUser.city, match()!.otherUser.country) }}</p>
+          }
+        </div>
       </div>
     }
   </div>

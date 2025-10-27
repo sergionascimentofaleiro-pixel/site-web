@@ -133,7 +133,20 @@
     .match-name {
       font-size: 1.3rem;
       color: var(--secondary-color);
-      margin: 0 0 0.5rem 0;
+      margin: 0 0 0.3rem 0;
+
+      .match-age {
+        font-weight: normal;
+        color: #666;
+        font-size: 1.1rem;
+      }
+    }
+
+    .match-location {
+      font-size: 0.95rem;
+      color: #555;
+      margin: 0 0 0.3rem 0;
+      font-weight: 500;
     }
 
     .match-time {

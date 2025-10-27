@@ -99,4 +99,30 @@ export class Matches implements OnInit {
     }
     return url;
   }
+
+  getAge(birthDate: string | undefined): number | null {
+    if (!birthDate) return null;
+
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+
+    return age;
+  }
+
+  getLocation(city: string | undefined, country: string | undefined): string {
+    if (city && country) {
+      return `${city}, ${country}`;
+    } else if (city) {
+      return city;
+    } else if (country) {
+      return country;
+    }
+    return '';
+  }
 }

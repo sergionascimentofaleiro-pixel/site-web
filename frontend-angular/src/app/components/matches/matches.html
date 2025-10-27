@@ -44,7 +44,15 @@
             </div>
 
             <div class="match-info">
-              <h3 class="match-name">{{ match.otherUser.name }}</h3>
+              <h3 class="match-name">
+                {{ match.otherUser.name }}
+                @if (getAge(match.otherUser.birthDate)) {
+                  <span class="match-age">, {{ getAge(match.otherUser.birthDate) }} ans</span>
+                }
+              </h3>
+              @if (getLocation(match.otherUser.city, match.otherUser.country)) {
+                <p class="match-location">📍 {{ getLocation(match.otherUser.city, match.otherUser.country) }}</p>
+              }
               <p class="match-time">{{ getTimeAgo(match.matchedAt) }}</p>
             </div>
 

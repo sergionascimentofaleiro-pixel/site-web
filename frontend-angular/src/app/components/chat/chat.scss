@@ -45,6 +45,7 @@
       border-radius: 50%;
       overflow: hidden;
       border: 2px solid var(--primary-color);
+      flex-shrink: 0;
 
       img {
         width: 100%;
@@ -65,10 +66,28 @@
       }
     }
 
-    h2 {
-      margin: 0;
-      font-size: 1.3rem;
-      color: var(--secondary-color);
+    .match-details {
+      flex: 1;
+      min-width: 0;
+
+      h2 {
+        margin: 0;
+        font-size: 1.3rem;
+        color: var(--secondary-color);
+
+        .chat-age {
+          font-weight: normal;
+          color: #666;
+          font-size: 1.1rem;
+        }
+      }
+
+      .chat-location {
+        margin: 0.2rem 0 0 0;
+        font-size: 0.9rem;
+        color: #555;
+        font-weight: 500;
+      }
     }
   }
 }

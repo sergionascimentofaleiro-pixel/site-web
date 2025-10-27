@@ -10,6 +10,9 @@ export interface MatchData {
     name: string;
     photo: string;
     email: string;
+    birthDate?: string;
+    city?: string;
+    country?: string;
   };
 }
 
