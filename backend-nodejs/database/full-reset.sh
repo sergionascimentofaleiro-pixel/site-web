@@ -36,9 +36,10 @@ echo ""
 echo "0️⃣  Cleaning old uploaded photos..."
 UPLOADS_DIR="../uploads/profiles"
 if [ -d "$UPLOADS_DIR" ]; then
-    # Remove only woman_*.* files (keep user uploaded photos like user_401_*.*)
+    # Remove test profile photos (keep user uploaded photos like user_401_*.*)
     rm -f "$UPLOADS_DIR"/woman_*.*
-    echo "✅ Removed old woman_*.* photos from $UPLOADS_DIR"
+    rm -f "$UPLOADS_DIR"/man_*.*
+    echo "✅ Removed old test photos (woman_*.* and man_*.*) from $UPLOADS_DIR"
 else
     echo "ℹ️  Uploads directory doesn't exist yet, will be created"
 fi

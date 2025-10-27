@@ -261,8 +261,9 @@ PRICE_YEARLY=100.00
 # Scheduler
 RUN_SCHEDULER_ON_STARTUP=true
 
-# Photos de test (chemin absolu)
-PHOTOS_SOURCE_DIR=/chemin/vers/photos
+# Photos de test (chemins absolus)
+PHOTOS_SOURCE_DIR_WOMEN=/chemin/vers/photos-femmes
+PHOTOS_SOURCE_DIR_MEN=/chemin/vers/photos-hommes
 ```
 
 ## 📁 Scripts Database
@@ -281,9 +282,10 @@ Génère 400 profils français réalistes avec:
 
 ### Configuration
 
-Éditer `.env` pour changer:
+Éditer `.env` pour définir les répertoires de photos:
 ```env
-PHOTOS_SOURCE_DIR=/votre/chemin/photos
+PHOTOS_SOURCE_DIR_WOMEN=/votre/chemin/photos-femmes
+PHOTOS_SOURCE_DIR_MEN=/votre/chemin/photos-hommes
 ```
 
 Le script:
