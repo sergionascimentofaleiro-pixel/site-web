@@ -2,11 +2,44 @@
 """
 Generate test data with 200 French men and 200 French women
 Uses placeholder photos from UI Avatars and randomuser.me
+For women, uses local photos from PHOTOS_SOURCE_DIR (configured in .env)
+Ensures NO duplicate photos across all profiles
+Test profiles: All men seek women, all women seek men (no 'all')
 """
 
 import mysql.connector
 import random
 from datetime import datetime, timedelta
+import os
+import shutil
+from pathlib import Path
+import hashlib
+
+# Load environment variables from .env file manually (no external dependencies)
+def load_env():
+    """Load environment variables from .env file"""
+    env_path = Path(__file__).parent.parent / '.env'
+    env_vars = {}
+
+    if env_path.exists():
+        with open(env_path, 'r') as f:
+            for line in f:
+                line = line.strip()
+                # Skip comments and empty lines
+                if line and not line.startswith('#'):
+                    # Split on first = only
+                    if '=' in line:
+                        key, value = line.split('=', 1)
+                        env_vars[key.strip()] = value.strip()
+
+    # Set environment variables
+    for key, value in env_vars.items():
+        os.environ.setdefault(key, value)
+
+    return env_vars
+
+# Load .env variables
+load_env()
 
 # Database connection
 db_config = {
@@ -116,17 +149,152 @@ def get_random_interests(cursor, count=5):
     cursor.execute("SELECT interest_id FROM interests ORDER BY RAND() LIMIT %s", (count,))
     return [row[0] for row in cursor.fetchall()]
 
-def generate_profile_photo(gender, index):
-    """Generate profile photo URL based on gender"""
-    # Using randomuser.me API for realistic photos
-    seed = f"{gender}_{index}"
-    return f"https://randomuser.me/api/portraits/{'men' if gender == 'male' else 'women'}/{index % 99}.jpg"
+def get_file_hash(file_path):
+    """Calculate MD5 hash of a file to detect duplicates"""
+    hash_md5 = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
-def create_test_users(cursor):
+def copy_local_photos():
+    """Copy local photos to uploads directory and return list of copied filenames
+
+    DEDUPLICATION: Detects and removes duplicate photos before copying
+    Handles variable number of photos (0 to 200+):
+    - If 0 photos: returns empty list, all women will use other sources
+    - If 1-200 unique photos: uses local photos + other sources to fill 200 profiles
+    - If 200+ unique photos: uses only first 200 unique photos for 200 women profiles
+
+    Uses PHOTOS_SOURCE_DIR from .env file
+    """
+    # Get source directory from environment variable
+    source_dir_str = os.getenv('PHOTOS_SOURCE_DIR', '/media/nascimento/data/photos-site')
+    source_dir = Path(source_dir_str)
+
+    # Get destination directory (always relative to backend-nodejs)
+    script_dir = Path(__file__).parent
+    dest_dir = script_dir.parent / 'uploads' / 'profiles'
+
+    # Create destination directory if it doesn't exist
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Check if source directory exists
+    if not source_dir.exists():
+        print(f"⚠️  Warning: Source directory {source_dir} does not exist")
+        return []
+
+    # Get all image files from source directory
+    image_files = []
+    for ext in ['*.png', '*.jpg', '*.jpeg', '*.webp', '*.PNG', '*.JPG', '*.JPEG', '*.WEBP']:
+        image_files.extend(source_dir.glob(ext))
+
+    # Sort to ensure consistent ordering
+    image_files = sorted(image_files)
+
+    if len(image_files) == 0:
+        print(f"⚠️  Warning: No photos found in {source_dir}")
+        return []
+
+    print(f"   Found {len(image_files)} photos in source directory")
+
+    # DEDUPLICATION: Remove duplicate photos by hash
+    seen_hashes = {}
+    unique_files = []
+    duplicates_found = 0
+
+    for img_file in image_files:
+        try:
+            file_hash = get_file_hash(img_file)
+            if file_hash not in seen_hashes:
+                seen_hashes[file_hash] = img_file
+                unique_files.append(img_file)
+            else:
+                duplicates_found += 1
+                print(f"   ⚠️  Duplicate detected: {img_file.name} (same as {seen_hashes[file_hash].name})")
+        except Exception as e:
+            print(f"   ⚠️  Error reading {img_file.name}: {e}")
+
+    if duplicates_found > 0:
+        print(f"   ℹ️  Removed {duplicates_found} duplicate photo(s)")
+
+    print(f"   Using {len(unique_files)} unique photos")
+
+    # Limit to 200 photos max (we only have 200 women profiles)
+    max_photos = min(len(unique_files), 200)
+    unique_files = unique_files[:max_photos]
+
+    copied_files = []
+    for idx, img_file in enumerate(unique_files):
+        # Use original extension
+        ext = img_file.suffix
+        # Copy with a standardized name
+        dest_filename = f"woman_{idx+1}{ext}"
+        dest_path = dest_dir / dest_filename
+
+        try:
+            shutil.copy2(img_file, dest_path)
+            copied_files.append(dest_filename)
+        except Exception as e:
+            print(f"   ⚠️  Error copying {img_file.name}: {e}")
+
+    return copied_files
+
+def generate_profile_photo(gender, index, local_photos=None):
+    """Generate profile photo URL based on gender - NO DUPLICATES
+
+    Uses multiple sources to ensure 200 unique photos per gender:
+    1. Local photos (for women only)
+    2. randomuser.me (men: 0-99, women: 0-99)
+    3. UI Avatars with unique initials (fallback)
+
+    Women profiles (index 0-199):
+    - First N: Local photos (if available)
+    - Next 100: randomuser.me women/0-99
+    - Remaining: UI Avatars with unique names
+
+    Men profiles (index 0-199):
+    - First 100: randomuser.me men/0-99
+    - Remaining 100: UI Avatars with unique initials
+    """
+    if gender == 'female' and local_photos and len(local_photos) > 0 and index < len(local_photos):
+        # Use local photo for first N women (where N = number of local photos)
+        return f"/uploads/profiles/{local_photos[index]}"
+    elif gender == 'female':
+        # For remaining women
+        offset = len(local_photos) if local_photos else 0
+        remaining_index = index - offset
+
+        if remaining_index < 100:
+            # Use randomuser.me women/0-99 (100 unique photos)
+            return f"https://randomuser.me/api/portraits/women/{remaining_index}.jpg"
+        else:
+            # Use UI Avatars with unique initials as fallback
+            # Generate unique combinations to avoid duplicates
+            remaining_after_randomuser = remaining_index - 100
+            # Use letters A-Z and combinations to create unique avatars
+            first_letter = chr(65 + (remaining_after_randomuser // 26))  # A, B, C...
+            second_letter = chr(65 + (remaining_after_randomuser % 26))  # A-Z
+            return f"https://ui-avatars.com/api/?name={first_letter}+{second_letter}&background=random&size=300&bold=true"
+    else:
+        # For men
+        if index < 100:
+            # Use randomuser.me men/0-99 (100 unique photos)
+            return f"https://randomuser.me/api/portraits/men/{index}.jpg"
+        else:
+            # Use UI Avatars with unique initials as fallback
+            remaining_index = index - 100
+            first_letter = chr(65 + (remaining_index // 26))  # A, B, C...
+            second_letter = chr(65 + (remaining_index % 26))  # A-Z
+            return f"https://ui-avatars.com/api/?name={first_letter}+{second_letter}&background=random&size=300&bold=true"
+
+def create_test_users(cursor, local_photos=None):
     """Create 200 men and 200 women test accounts"""
     print("Creating test users...")
     print("  Women distribution: 50 in Paris, 15 in Orléans, 135 random")
     print("  Men distribution: 200 random French cities")
+    if local_photos:
+        print(f"  Using {len(local_photos)} local photos for women")
 
     # Get France country ID
     cursor.execute("SELECT id FROM countries WHERE code = 'FR'")
@@ -160,9 +328,9 @@ def create_test_users(cursor):
 
         # Create profile
         birth_date = get_random_date_of_birth()
-        looking_for = random.choice(['female', 'female', 'female', 'all'])  # 75% female, 25% all
+        looking_for = 'female'  # All men seek women
         bio = random.choice(BIOS_MALE)
-        profile_photo = generate_profile_photo('male', i)
+        profile_photo = generate_profile_photo('male', i, local_photos)
 
         cursor.execute("""
             INSERT INTO profiles (
@@ -213,9 +381,9 @@ def create_test_users(cursor):
 
         # Create profile
         birth_date = get_random_date_of_birth()
-        looking_for = random.choice(['male', 'male', 'male', 'all'])  # 75% male, 25% all
+        looking_for = 'male'  # All women seek men
         bio = random.choice(BIOS_FEMALE)
-        profile_photo = generate_profile_photo('female', i)
+        profile_photo = generate_profile_photo('female', i, local_photos)
 
         cursor.execute("""
             INSERT INTO profiles (
@@ -248,6 +416,18 @@ def main():
     cursor = None
 
     try:
+        # Get source directory from environment
+        source_dir = os.getenv('PHOTOS_SOURCE_DIR', '/media/nascimento/data/photos-site')
+
+        # Copy local photos for women
+        print(f"Copying local photos from {source_dir}...")
+        local_photos = copy_local_photos()
+
+        if len(local_photos) > 0:
+            print(f"✓ Copied {len(local_photos)} unique photos to uploads/profiles/\n")
+        else:
+            print(f"⚠️  No local photos found - all profiles will use randomuser.me\n")
+
         # Connect to database
         conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
@@ -263,20 +443,49 @@ def main():
         print("✓ Cleared existing test data\n")
 
         # Create test users
-        create_test_users(cursor)
+        create_test_users(cursor, local_photos)
 
         # Commit changes
         conn.commit()
+        source_dir = os.getenv('PHOTOS_SOURCE_DIR', 'not configured')
+
         print("\n=== Test Data Generation Complete ===")
+        print("✓ NO DUPLICATE PHOTOS - All profiles have unique photos!")
+        print("✓ All men seek women, all women seek men")
+        print("")
         print("You can now login with:")
         print("  Men: homme1@test.fr to homme200@test.fr")
+        print("    - Looking for: female")
         print("    - homme1 to homme20: Orléans")
         print("    - homme21 to homme200: Random French cities")
+        print("    Photo sources (NO duplicates):")
+        print("      - homme1-100: randomuser.me men/0-99")
+        print("      - homme101-200: UI Avatars unique initials")
+        print("")
         print("  Women: femme1@test.fr to femme200@test.fr")
+        print("    - Looking for: male")
         print("    - femme1 to femme50: Paris")
         print("    - femme51 to femme65: Orléans")
         print("    - femme66 to femme200: Random French cities")
+        if local_photos and len(local_photos) > 0:
+            print("    Photo sources (NO duplicates):")
+            print(f"      - femme1-{len(local_photos)}: Local unique photos from {source_dir}")
+            remaining = 200 - len(local_photos)
+            if remaining > 0:
+                if remaining <= 100:
+                    print(f"      - femme{len(local_photos)+1}-200: randomuser.me women/0-{remaining-1}")
+                else:
+                    print(f"      - femme{len(local_photos)+1}-{len(local_photos)+100}: randomuser.me women/0-99")
+                    print(f"      - femme{len(local_photos)+101}-200: UI Avatars unique initials")
+        else:
+            print("    Photo sources (NO duplicates):")
+            print("      - femme1-100: randomuser.me women/0-99")
+            print("      - femme101-200: UI Avatars unique initials")
+        print("")
         print("  Password: password123")
+        print("")
+        print("Configuration:")
+        print(f"  - PHOTOS_SOURCE_DIR: {source_dir}")
 
     except mysql.connector.Error as err:
         print(f"✗ Database error: {err}")

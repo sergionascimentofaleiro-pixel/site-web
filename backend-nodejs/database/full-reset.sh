@@ -32,6 +32,19 @@ echo ""
 echo "Starting full reset..."
 echo ""
 
+# Step 0: Clean old uploaded photos
+echo "0️⃣  Cleaning old uploaded photos..."
+UPLOADS_DIR="../uploads/profiles"
+if [ -d "$UPLOADS_DIR" ]; then
+    # Remove only woman_*.* files (keep user uploaded photos like user_401_*.*)
+    rm -f "$UPLOADS_DIR"/woman_*.*
+    echo "✅ Removed old woman_*.* photos from $UPLOADS_DIR"
+else
+    echo "ℹ️  Uploads directory doesn't exist yet, will be created"
+fi
+
+echo ""
+
 # Step 1: Drop and recreate database
 echo "1️⃣  Dropping and recreating database..."
 mysql -uroot -p$ROOT_PASS << EOF
