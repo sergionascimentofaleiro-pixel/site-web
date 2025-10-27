@@ -1,59 +1,251 @@
-# FrontendAngular
+# Frontend Angular - Dating App
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.4.
+Application Angular 20 avec architecture standalone components et reactive programming avec Signals.
 
-## Development server
-
-To start a local development server, run:
+## 🚀 Démarrage
 
 ```bash
-ng serve
+npm install
+npm start          # Démarre le serveur de développement sur http://localhost:4200
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 📦 Commandes disponibles
 
 ```bash
-ng generate component component-name
+npm start          # Serveur dev (ng serve)
+npm run build      # Build production (dist/)
+npm run watch      # Build + watch mode
+npm test           # Tests Karma
+ng generate component nom    # Générer un composant
+ng generate --help           # Liste des schematics
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🏗️ Architecture
+
+### Structure des composants
+
+```
+src/app/
+├── components/
+│   ├── login/           # Authentification
+│   ├── register/        # Inscription
+│   ├── profile/         # Profil utilisateur
+│   ├── discover/        # Swipe (Tinder-like)
+│   ├── matches/         # Liste des matchs
+│   ├── chat/            # Messagerie
+│   ├── subscription/    # Abonnements PayPal
+│   └── language-selector/  # Sélecteur de langue
+├── services/
+│   ├── auth.ts          # Authentification
+│   ├── profile.ts       # Gestion profils
+│   ├── match.ts         # Matchs
+│   ├── message.ts       # Messagerie
+│   ├── interest.ts      # Intérêts
+│   ├── location.ts      # Localisation
+│   └── subscription.ts  # Abonnements
+├── interceptors/
+│   └── auth.interceptor.ts  # Injection JWT automatique
+├── guards/
+│   ├── auth.guard.ts    # Protection routes authentifiées
+│   └── profile.guard.ts # Redirection si profil incomplet
+├── app.routes.ts        # Configuration routing
+└── app.config.ts        # Configuration application
+```
+
+### Technologies utilisées
+
+- **Angular 20** - Framework
+- **Standalone Components** - Architecture moderne sans NgModules
+- **Signals** - Gestion d'état réactive
+- **RxJS** - Programmation réactive
+- **SCSS** - Styling
+- **ngx-translate** - Internationalisation (fr, en, es, pt)
+- **Socket.io-client** - WebSocket pour chat temps réel
+
+## 🌐 Internationalisation
+
+4 langues supportées:
+- **Français (fr)** - Langue par défaut
+- **Anglais (en)**
+- **Espagnol (es)**
+- **Portugais (pt)**
+
+Fichiers de traduction dans `public/assets/i18n/`:
+- `fr.json`
+- `en.json`
+- `es.json`
+- `pt.json`
+
+Le sélecteur de langue est disponible dans la barre de navigation.
+
+## 🔒 Authentification
+
+- **JWT tokens** stockés en localStorage
+- **HTTP Interceptor** injecte automatiquement le token dans les requêtes
+- **Auth Guard** protège les routes nécessitant une connexion
+- **Profile Guard** redirige vers création de profil si incomplet
+
+## 🎨 Styling
+
+- **SCSS** configuré globalement
+- **Variables CSS** dans `src/styles.scss`
+- **Composants stylés** avec `.scss` par composant
+- **Design responsive**
+
+## 🔌 Services API
+
+Tous les services communiquent avec le backend via HTTP:
+
+### AuthService
+```typescript
+login(email, password)
+register(email, password)
+getCurrentUser()
+updateLanguagePreference(language)
+logout()
+```
+
+### ProfileService
+```typescript
+getMyProfile()
+createOrUpdateProfile(data)
+getPotentialMatches(limit, language)
+swipe(targetUserId, action)  // 'like' ou 'pass'
+```
+
+### MatchService
+```typescript
+getMatches()
+unmatch(matchId)
+```
+
+### MessageService
+```typescript
+getConversations()
+getMessages(matchId)
+sendMessage(matchId, receiverId, message)
+getUnreadCount()
+```
+
+### InterestService
+```typescript
+getAllInterests(language)
+getUserInterests()
+setUserInterests(interestIds)
+```
+
+### LocationService
+```typescript
+getCountries(language)
+getStates(countryId)
+getCities(countryId)
+searchCities(countryId, query, limit)
+```
+
+## 📱 Pages principales
+
+### Login & Register
+Authentification JWT avec validation de formulaires.
+
+### Profile
+- Création/édition profil
+- Upload photo (URL ou local)
+- Sélection intérêts (100 disponibles)
+- Localisation (pays, état, ville avec autocomplete)
+- Informations personnelles (nom, date naissance, genre, préférences)
+
+### Discover
+- Interface de swipe type Tinder
+- Affichage profils recommandés
+- Like / Pass avec animations
+- Popup de match instantané
+- Rechargement automatique des profils
+
+### Matches
+- Liste des matchs mutuels
+- Accès rapide au chat
+- Option unmatch
+
+### Chat
+- Messagerie en temps réel (WebSocket)
+- Historique des conversations
+- Compteur messages non lus
+- Indicateur de saisie
+
+### Subscription
+- Sélection abonnement (24h, mensuel, annuel)
+- Paiement PayPal intégré
+- Gestion abonnements actifs
+- Annulation d'abonnement
+
+## 🛡️ Guards
+
+### AuthGuard
+Protège les routes nécessitant une authentification.
+
+### ProfileGuard
+Redirige vers `/profile` si l'utilisateur n'a pas complété son profil.
+
+## ⚙️ Configuration
+
+### proxy.conf.json
+Proxy pour rediriger les appels API vers le backend:
+```json
+{
+  "/api": {
+    "target": "http://localhost:3000",
+    "secure": false
+  }
+}
+```
+
+### app.config.ts
+Configuration globale:
+- Providers (router, HTTP client, i18n)
+- Zone detection
+- Error listeners
+
+## 🧪 Tests
 
 ```bash
+npm test           # Lance Karma
+```
+
+Tests configurés avec Jasmine et Karma (Chrome headless).
+
+## 🏭 Build Production
+
+```bash
+npm run build      # Génère dans dist/
+```
+
+Optimisations incluses:
+- Tree-shaking
+- Minification
+- AOT compilation
+- Lazy loading des routes
+
+## 📝 Code Style
+
+**Prettier** configuré avec:
+- Print width: 100 caractères
+- Single quotes
+- Trailing commas: all
+
+## 🤖 Angular CLI
+
+Génération de code:
+```bash
+ng generate component nom
+ng generate service nom
+ng generate guard nom
+ng generate interceptor nom
 ng generate --help
 ```
 
-## Building
+## 📚 Ressources
 
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- [Angular Documentation](https://angular.dev)
+- [Angular CLI](https://angular.dev/tools/cli)
+- [RxJS](https://rxjs.dev)
+- [ngx-translate](https://github.com/ngx-translate/core)

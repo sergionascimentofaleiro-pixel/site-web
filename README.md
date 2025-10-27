@@ -1,122 +1,132 @@
-# 💕 Dating App - Full Stack Application
+# Application de Rencontres (Dating App)
 
-Une application de rencontres moderne construite avec **Angular 20** et **Node.js/Express**, inspirée de Tinder.
+Application full-stack similaire à Tinder, développée avec Angular 20 et Node.js/Express + MariaDB.
 
-## 🚀 Technologies
+## 🏗️ Architecture
 
-### Frontend
-- **Angular 20** avec standalone components
-- **Signals** pour la gestion d'état
-- **RxJS** pour la programmation réactive
-- **SCSS** pour le styling
-- **JWT** pour l'authentification
+```
+vscode-workspace/
+├── frontend-angular/    # Application Angular 20 (standalone components)
+├── backend-nodejs/      # API Express.js + MariaDB
+└── CLAUDE.md           # Instructions pour Claude Code
+```
 
-### Backend
-- **Node.js** + **Express 5**
-- **MariaDB/MySQL** pour la base de données
-- **bcryptjs** pour le hachage de mots de passe
-- **jsonwebtoken** pour l'authentification
-- Architecture **MVC**
+Le frontend et le backend sont des applications séparées qui communiquent via HTTP.
 
-## 📋 Fonctionnalités
+## 🚀 Quick Start
 
-✅ **Authentification complète**
-- Inscription et connexion avec JWT
-- Sessions persistantes
-- Déconnexion
-
-✅ **Gestion de profils**
-- Création et modification de profil
-- Photo de profil (URL)
-- Bio, centres d'intérêt, localisation
-- Préférences de recherche (genre recherché)
-
-✅ **Système de matching**
-- Swipe (like/pass) sur des profils
-- Détection automatique de match mutuel
-- Liste des matchs
-
-✅ **Messagerie**
-- Chat en temps réel avec les matchs
-- Historique des conversations
-- Compteur de messages non lus
-
-## 🎯 Pages
-
-| Page | Description | Statut |
-|------|-------------|--------|
-| Login/Register | Authentification | ✅ Complète |
-| Profile | Création/édition profil | ✅ Complète |
-| Discover | Swipe des profils (Tinder-like) | 🔨 À implémenter |
-| Matches | Liste des matchs | 🔨 À implémenter |
-| Chat | Messagerie | 🔨 À implémenter |
-
-## 📦 Installation
-
-Voir le fichier [SETUP.md](./SETUP.md) pour les instructions détaillées.
-
-### Quick Start
+### 1. Base de données (MariaDB)
 
 ```bash
-# 1. Initialiser la base de données
 cd backend-nodejs/database
-./init-db.sh
-./seed-db.sh  # Optionnel : 40 profils de test
+./full-reset.sh
+```
 
-# 2. Démarrer le backend
-cd ../
+**Ce script crée** (1-2 minutes):
+- Tables (users, profiles, matches, messages, interests, locations)
+- 400 comptes de test français (200 hommes, 200 femmes) avec photos
+- Données géographiques mondiales (252 pays, 305 états, 224k villes avec GPS)
+- Traductions i18n (fr, en, es, pt)
+- 100 intérêts répartis en 10 catégories
+
+**Credentials:**
+- Root: `Manuela2011`
+- Dev user: `devuser` / `Manuela2011!`
+- Database: `dating_app`
+
+### 2. Backend (Port 3000)
+
+```bash
+cd backend-nodejs
+npm install
 npm run dev
+```
 
-# 3. Démarrer le frontend (nouveau terminal)
-cd ../../frontend-angular
+### 3. Frontend (Port 4200)
+
+```bash
+cd frontend-angular
+npm install
 npm start
 ```
 
-Ouvrez http://localhost:4200
+**Accès:** http://localhost:4200
 
 ## 🧪 Comptes de test
 
-Après avoir exécuté `seed-db.sh`, vous avez accès à 40 profils de test.
+- **Hommes:** `homme1@test.fr` à `homme200@test.fr`
+- **Femmes:** `femme1@test.fr` à `femme200@test.fr`
+- **Mot de passe:** `password123`
 
-Voir [TEST-ACCOUNTS.md](./TEST-ACCOUNTS.md) pour la liste complète.
+**Distribution:**
+- homme1-20: Orléans
+- homme21-200: Villes aléatoires en France
+- femme1-50: Paris
+- femme51-65: Orléans
+- femme66-200: Villes aléatoires en France
 
-**Exemples :**
-- 👨 Hommes : `john.smith@test.com`, `michael.jones@test.com`
-- 👩 Femmes : `emma.johnson@test.com`, `olivia.williams@test.com`
-- 🔑 Mot de passe pour tous : `Test123!`
+## 📦 Fonctionnalités
 
-## 📁 Structure du projet
+- ✅ Authentification JWT
+- ✅ Profils utilisateurs avec photos
+- ✅ Système de swipe (like/pass)
+- ✅ Matching algorithmique (âge, distance GPS, intérêts communs)
+- ✅ Chat en temps réel (WebSocket Socket.io)
+- ✅ Localisation GPS mondiale (224k villes)
+- ✅ Système d'intérêts (100 intérêts, 10 catégories)
+- ✅ Internationalisation complète (fr, en, es, pt)
+- ✅ Abonnements PayPal (24h, mensuel, annuel)
+- ✅ Limite de conversations gratuites (5 gratuites)
 
+## 🛠️ Configuration
+
+### Backend `.env`
+
+```env
+# Database
+DB_HOST=localhost
+DB_USER=devuser
+DB_PASSWORD=Manuela2011!
+DB_NAME=dating_app
+
+# JWT
+JWT_SECRET=your_jwt_secret_change_in_production_2024
+
+# URLs
+BACKEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:4200
+
+# PayPal (Sandbox pour développement)
+PAYPAL_CLIENT_ID=Af93iVs15blSEniyWhaS4iU7Id4hT0-GasnKzHA30YL_OeprInfVRJRCuADpLx7couOQ79ifg8rZRmfe
+PAYPAL_CLIENT_SECRET=ECP3AqzRWaOnZLR2qrb4c0hQU5iceEpP4IAEhC9fuHeapSzhRX8VIDVO3a-xZkrUP8FYmiNp8SXv9zeR
+
+# Conversations
+FREE_CONVERSATION_LIMIT=5
+PRICE_24H=5.00
+PRICE_MONTHLY=12.00
+PRICE_YEARLY=100.00
+
+# Photos de test (chemin absolu)
+PHOTOS_SOURCE_DIR=/chemin/vers/photos
 ```
-├── backend-nodejs/
-│   ├── src/
-│   │   ├── config/        # Configuration DB
-│   │   ├── controllers/   # Logique métier
-│   │   ├── models/        # Modèles de données
-│   │   ├── routes/        # Routes API
-│   │   ├── middleware/    # Auth JWT
-│   │   └── server.js      # Point d'entrée
-│   └── database/
-│       ├── schema.sql     # Schéma DB
-│       ├── seed-data.sql  # Données de test
-│       ├── init-db.sh     # Script d'initialisation
-│       ├── reset-db.sh    # Script de réinitialisation
-│       └── seed-db.sh     # Script d'injection de données
-│
-└── frontend-angular/
-    └── src/app/
-        ├── components/    # Composants Angular
-        ├── services/      # Services API
-        ├── interceptors/  # HTTP interceptor JWT
-        └── app.routes.ts  # Configuration routing
-```
 
-## 🔌 API Endpoints
+### Frontend
+
+Le proxy API est configuré automatiquement dans `proxy.conf.json`.
+
+## 📚 Documentation détaillée
+
+- **Frontend:** `frontend-angular/README.md`
+- **Backend:** `backend-nodejs/README.md`
+- **Claude Code:** `CLAUDE.md` (instructions pour l'assistant IA)
+
+## 🔌 API Endpoints (JWT requis)
 
 ### Authentification
 - `POST /api/auth/register` - Inscription
 - `POST /api/auth/login` - Connexion
 - `GET /api/auth/me` - Utilisateur actuel
+- `PUT /api/auth/preferences` - Préférences (langue)
 
 ### Profils
 - `POST /api/profile` - Créer/MAJ profil
@@ -124,52 +134,116 @@ Voir [TEST-ACCOUNTS.md](./TEST-ACCOUNTS.md) pour la liste complète.
 - `GET /api/profile/potential-matches` - Profils à swiper
 - `POST /api/profile/swipe` - Liker/passer un profil
 
-### Matchs
+### Matchs & Messages
 - `GET /api/matches` - Liste des matchs
 - `DELETE /api/matches/:id` - Unmatch
-
-### Messages
 - `POST /api/messages` - Envoyer un message
 - `GET /api/messages/:matchId` - Conversation
 - `GET /api/messages/conversations` - Toutes les conversations
 - `GET /api/messages/unread-count` - Messages non lus
 
-## 🗄️ Schéma de base de données
+### Intérêts
+- `GET /api/interests` - Liste avec traductions
+- `GET /api/interests/user` - Intérêts de l'utilisateur
+- `POST /api/interests/user` - Définir intérêts
 
-- **users** : Authentification
-- **profiles** : Informations profil
-- **photos** : Photos de profil
-- **likes** : Swipes (like/pass)
-- **matches** : Matchs mutuels
-- **messages** : Messagerie
+### Localisation
+- `GET /api/locations/countries` - Pays
+- `GET /api/locations/states/:countryId` - États/provinces
+- `GET /api/locations/cities/:countryId` - Villes
+- `GET /api/locations/cities/search` - Recherche ville
 
-## 🎨 Design
+### Abonnements
+- `GET /api/subscription/plans` - Liste des plans disponibles (public)
+- `POST /api/subscription/create-order` - Créer commande PayPal
+- `POST /api/subscription/capture-order` - Capturer paiement
+- `GET /api/subscription/status` - Statut abonnement et conversations
+- `GET /api/subscription/can-access/:matchId` - Vérifier accès conversation
+- `GET /api/subscription/payment-history` - Historique paiements
+- `POST /api/subscription/cancel` - Annuler abonnement
+- `POST /api/subscription/webhook` - Webhook PayPal (interne)
 
-- Palette de couleurs : Rose (#e94560) et Bleu (#0f3460)
-- Design responsive
-- Inspiré des applications de rencontres modernes
+## 🗄️ Base de données
 
-## 📝 TODO / Améliorations futures
+Schéma complet dans `backend-nodejs/database/`:
+- **users** - Authentification
+- **profiles** - Profils utilisateurs
+- **likes** - Swipes (like/pass)
+- **matches** - Matchs mutuels
+- **messages** - Messagerie
+- **interest_categories** - Catégories d'intérêts
+- **interests** - 100 intérêts prédéfinis
+- **interest_translations** - Traductions (fr, en, es, pt)
+- **profile_interests** - Association profil-intérêts
+- **countries** - 252 pays avec traductions
+- **states** - 305 états/provinces
+- **cities** - 224k villes avec GPS (population > 500)
+- **subscriptions** - Abonnements PayPal
+- **payment_history** - Historique paiements
+- **user_conversations** - Suivi conversations gratuites
 
-- [ ] Implémenter les pages Discover, Matches et Chat
-- [ ] Upload de photos réel (Multer)
-- [ ] WebSocket pour messagerie temps réel
-- [ ] Filtres de recherche (distance, âge, etc.)
-- [ ] Système de notifications
-- [ ] Vérification email
-- [ ] Photos multiples par profil
-- [ ] Tests unitaires et E2E
+## 💳 Configuration PayPal (Sandbox)
 
-## 📖 Documentation
+### Clés API déjà configurées
 
-- [SETUP.md](./SETUP.md) - Guide d'installation complet
-- [TEST-ACCOUNTS.md](./TEST-ACCOUNTS.md) - Liste des comptes de test
-- [CLAUDE.md](./CLAUDE.md) - Documentation pour Claude Code
+Les clés PayPal Sandbox sont déjà dans `.env` :
 
-## 🤝 Contribution
+```env
+PAYPAL_CLIENT_ID=Af93iVs15blSEniyWhaS4iU7Id4hT0-GasnKzHA30YL_OeprInfVRJRCuADpLx7couOQ79ifg8rZRmfe
+PAYPAL_CLIENT_SECRET=ECP3AqzRWaOnZLR2qrb4c0hQU5iceEpP4IAEhC9fuHeapSzhRX8VIDVO3a-xZkrUP8FYmiNp8SXv9zeR
+```
 
-Projet personnel d'apprentissage. N'hésitez pas à forker et expérimenter !
+**Mode** : Sandbox (test)
+**URL API** : `https://api-m.sandbox.paypal.com`
+
+### Obtenir vos propres clés (optionnel)
+
+Si vous voulez utiliser vos propres clés :
+
+1. **Créer un compte développeur** : https://developer.paypal.com
+2. **Dashboard** → **Apps & Credentials** → Onglet **Sandbox**
+3. **Create App** → Nom : "Dating App Test" → Type : "Merchant"
+4. Copier **Client ID** (~80 caractères commençant par `A`)
+5. Cliquer **Show** pour révéler **Client Secret** (~80 caractères)
+6. Remplacer dans `.env` et dans `frontend-angular/src/app/components/subscription/subscription.ts` (ligne 55)
+
+### Comptes de test PayPal
+
+Pour tester les paiements, utilisez les comptes sandbox générés automatiquement :
+
+1. **Dashboard PayPal** → **Sandbox** → **Accounts**
+2. Vous verrez 2 comptes :
+   - **Business Account** (marchand - reçoit les paiements)
+   - **Personal Account** (acheteur - fait les paiements)
+
+**Pour tester un paiement** :
+1. Dans l'app, créez 5 conversations (limite gratuite)
+2. À la 6ème, choisissez un abonnement
+3. Cliquez "S'abonner avec PayPal"
+4. Connectez-vous avec le **Personal Account** de test
+5. Complétez le paiement sandbox
+6. L'abonnement sera activé
+
+### Tarifs configurés
+
+- **24 heures** : 5,00 €
+- **Mensuel** : 12,00 €
+- **Annuel** : 100,00 €
+
+Modifiables dans `.env` :
+```env
+PRICE_24H=5.00
+PRICE_MONTHLY=12.00
+PRICE_YEARLY=100.00
+```
+
+### Ressources PayPal
+
+- **Dashboard** : https://developer.paypal.com/dashboard
+- **Documentation API** : https://developer.paypal.com/docs/api/orders/v2/
+- **Sandbox Testing** : https://developer.paypal.com/tools/sandbox/
+- **Webhooks** : https://developer.paypal.com/api/rest/webhooks/
 
 ## 📄 Licence
 
-MIT
+Projet privé de développement.
