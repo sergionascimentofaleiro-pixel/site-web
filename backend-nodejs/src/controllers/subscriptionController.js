@@ -141,6 +141,8 @@ exports.createOrder = async (req, res) => {
         brand_name: 'Dating App',
         landing_page: 'NO_PREFERENCE',
         user_action: 'PAY_NOW',
+        // Disable shipping address collection for digital goods
+        shipping_preference: 'NO_SHIPPING',
         return_url: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/subscription/success`,
         cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/subscription/cancel`
       }

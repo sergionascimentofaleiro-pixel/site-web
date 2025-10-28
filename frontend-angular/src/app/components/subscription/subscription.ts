@@ -52,7 +52,8 @@ export class SubscriptionComponent implements OnInit, OnDestroy {
 
     const script = document.createElement('script');
     // Use the correct PayPal Sandbox Client ID
-    script.src = 'https://www.paypal.com/sdk/js?client-id=Af93iVs15blSEniyWhaS4iU7Id4hT0-GasnKzHA30YL_OeprInfVRJRCuADpLx7couOQ79ifg8rZRmfe&components=buttons&disable-funding=paylater&currency=EUR';
+    // Added intent=capture to disable shipping info collection
+    script.src = 'https://www.paypal.com/sdk/js?client-id=Af93iVs15blSEniyWhaS4iU7Id4hT0-GasnKzHA30YL_OeprInfVRJRCuADpLx7couOQ79ifg8rZRmfe&components=buttons&disable-funding=paylater&currency=EUR&intent=capture';
     script.async = true;
     script.onload = () => {
       this.paypalLoaded.set(true);
