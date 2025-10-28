@@ -242,3 +242,65 @@
     }
   }
 }
+
+// Low height screens
+@media (max-height: 800px) {
+  .matches-container {
+    min-height: auto;
+    padding: 1.5rem;
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  .matches-grid {
+    gap: 1.2rem;
+  }
+
+  .match-card {
+    padding: 1.2rem;
+
+    .match-photo {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 0.8rem;
+    }
+  }
+}
+
+// Very low height screens
+@media (max-height: 650px) {
+  .matches-container {
+    padding: 1rem;
+
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+  }
+
+  .matches-grid {
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .match-card {
+    padding: 1rem;
+
+    .match-photo {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 0.6rem;
+    }
+
+    .match-info {
+      margin-bottom: 1rem;
+
+      .match-name {
+        font-size: 1.1rem;
+      }
+    }
+  }
+}

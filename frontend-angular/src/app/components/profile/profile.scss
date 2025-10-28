@@ -4,6 +4,15 @@
   display: flex;
   justify-content: center;
   align-items: flex-start;
+
+  @media (max-height: 800px) {
+    min-height: auto;
+    padding: 1.5rem;
+  }
+
+  @media (max-height: 650px) {
+    padding: 1rem;
+  }
 }
 
 .city-autocomplete {
@@ -415,5 +424,116 @@ small {
     border-radius: 4px;
     color: var(--success-color);
     font-weight: 600;
+  }
+}
+
+// Low height screens
+@media (max-height: 800px) {
+  .profile-card {
+    padding: 1.5rem;
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .subtitle {
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    h3 {
+      margin: 1rem 0 0.4rem 0;
+      font-size: 1.1rem;
+    }
+
+    .private-section,
+    .public-section {
+      padding: 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+  }
+
+  .photo-section .current-photo img {
+    width: 150px;
+    height: 150px;
+  }
+
+  .interests-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+
+    .interest-category {
+      margin-bottom: 1.5rem;
+    }
+  }
+}
+
+// Very low height screens
+@media (max-height: 650px) {
+  .profile-card {
+    padding: 1rem;
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .subtitle {
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    h3 {
+      margin: 0.8rem 0 0.3rem 0;
+      font-size: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .private-section,
+    .public-section {
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .info-text {
+      font-size: 0.85rem;
+      margin-bottom: 0.8rem;
+    }
+  }
+
+  .photo-section .current-photo img {
+    width: 120px;
+    height: 120px;
+  }
+
+  .interests-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+
+    .interests-hint {
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+
+    .interest-category {
+      margin-bottom: 1rem;
+
+      .category-title {
+        font-size: 1rem;
+      }
+
+      .interest-tags .interest-tag {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+    }
+  }
+
+  textarea {
+    min-height: 60px;
   }
 }

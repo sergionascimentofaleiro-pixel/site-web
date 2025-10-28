@@ -32,6 +32,17 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 20px;
+
+  @media (max-height: 800px) {
+    min-height: auto;
+    padding: 15px;
+    padding-top: max(15px, 5vh);
+    padding-bottom: max(15px, 5vh);
+  }
+
+  @media (max-height: 650px) {
+    padding: 10px;
+  }
 }
 
 .auth-card {
@@ -51,6 +62,34 @@ body {
   .subtitle {
     color: #666;
     margin-bottom: 30px;
+  }
+
+  @media (max-height: 800px) {
+    padding: 30px;
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+  }
+
+  @media (max-height: 650px) {
+    padding: 20px;
+
+    h1 {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      margin-bottom: 15px;
+      font-size: 0.9rem;
+    }
   }
 }
 
@@ -76,6 +115,33 @@ body {
     &:focus {
       outline: none;
       border-color: var(--primary-color);
+    }
+  }
+
+  @media (max-height: 800px) {
+    margin-bottom: 16px;
+
+    label {
+      margin-bottom: 6px;
+      font-size: 0.95rem;
+    }
+
+    input {
+      padding: 10px;
+    }
+  }
+
+  @media (max-height: 650px) {
+    margin-bottom: 12px;
+
+    label {
+      margin-bottom: 5px;
+      font-size: 0.9rem;
+    }
+
+    input {
+      padding: 8px;
+      font-size: 15px;
     }
   }
 }

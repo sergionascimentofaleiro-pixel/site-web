@@ -359,3 +359,78 @@
     }
   }
 }
+
+// Low height screens
+@media (max-height: 800px) {
+  .chat-header {
+    padding: 0.8rem 1rem;
+
+    .match-info {
+      .match-photo-small {
+        width: 45px;
+        height: 45px;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+    }
+  }
+
+  .messages-list {
+    padding: 1rem;
+  }
+
+  .message-input-container {
+    padding: 0.8rem 1rem;
+
+    textarea {
+      max-height: 100px;
+    }
+  }
+}
+
+// Very low height screens
+@media (max-height: 650px) {
+  .chat-header {
+    padding: 0.6rem 1rem;
+
+    .match-info {
+      gap: 0.7rem;
+
+      .match-photo-small {
+        width: 40px;
+        height: 40px;
+      }
+
+      h2 {
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .messages-list {
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .message .message-bubble {
+    padding: 0.6rem 0.9rem;
+    font-size: 0.95rem;
+  }
+
+  .message-input-container {
+    padding: 0.6rem 1rem;
+
+    textarea {
+      max-height: 80px;
+      padding: 0.6rem 1rem;
+    }
+
+    .btn-send {
+      width: 45px;
+      height: 45px;
+      font-size: 1.3rem;
+    }
+  }
+}

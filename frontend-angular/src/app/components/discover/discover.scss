@@ -384,3 +384,109 @@
     }
   }
 }
+
+// Low height screens (16:9 laptops, tablets in landscape)
+@media (max-height: 800px) {
+  .discover-container {
+    min-height: auto;
+    padding: 1rem;
+
+    h1 {
+      margin-bottom: 0.8rem;
+      font-size: 1.4rem;
+    }
+  }
+
+  .profile-photo {
+    height: 300px;
+  }
+
+  .profile-info {
+    padding: 0.9rem;
+
+    h2 {
+      font-size: 1.4rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .bio {
+      margin: 0.7rem 0;
+      font-size: 0.95rem;
+    }
+
+    .interests {
+      margin-top: 0.7rem;
+
+      strong {
+        margin-bottom: 0.4rem;
+        font-size: 0.95rem;
+      }
+
+      .tags .tag {
+        padding: 0.35rem 0.7rem;
+        font-size: 0.83rem;
+      }
+    }
+  }
+
+  .actions {
+    padding: 0.9rem;
+    gap: 1.8rem;
+
+    button {
+      width: 60px;
+      height: 60px;
+      font-size: 1.8rem;
+    }
+  }
+}
+
+// Very low height screens
+@media (max-height: 650px) {
+  .discover-container {
+    padding: 0.5rem;
+
+    h1 {
+      font-size: 1.3rem;
+      margin-bottom: 0.5rem;
+    }
+  }
+
+  .profile-photo {
+    height: 280px;
+  }
+
+  .profile-info {
+    padding: 0.75rem;
+
+    h2 {
+      font-size: 1.3rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .bio {
+      margin: 0.5rem 0;
+      font-size: 0.9rem;
+    }
+
+    .interests {
+      margin-top: 0.5rem;
+
+      .tags .tag {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+      }
+    }
+  }
+
+  .actions {
+    padding: 0.75rem;
+    gap: 1.5rem;
+
+    button {
+      width: 55px;
+      height: 55px;
+      font-size: 1.6rem;
+    }
+  }
+}
