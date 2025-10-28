@@ -10,7 +10,8 @@ class Match {
               p2.birth_date as user2_birth_date,
               u1.email as user1_email, u2.email as user2_email,
               c1.name as user1_city, c2.name as user2_city,
-              co1.name as user1_country, co2.name as user2_country
+              COALESCE(co1.name_fr, co1.name_en) as user1_country,
+              COALESCE(co2.name_fr, co2.name_en) as user2_country
        FROM matches m
        JOIN users u1 ON m.user1_id = u1.id
        JOIN users u2 ON m.user2_id = u2.id
