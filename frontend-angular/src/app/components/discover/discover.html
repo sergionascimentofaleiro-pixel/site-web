@@ -12,7 +12,14 @@
       <!-- Photo -->
       <div class="profile-photo">
         @if (currentProfile()?.profile_photo) {
-          <img [src]="getPhotoUrl(currentProfile()!.profile_photo)" [alt]="currentProfile()!.first_name" />
+          <div class="photo-wrapper">
+            <img
+              #profileImage
+              [src]="getPhotoUrl(currentProfile()!.profile_photo)"
+              [alt]="currentProfile()!.first_name"
+              (load)="onImageLoad($event)" />
+            <div class="watermark" #watermark>curvy.com</div>
+          </div>
         } @else {
           <div class="no-photo">{{ 'discover.noPhoto' | translate }}</div>
         }
