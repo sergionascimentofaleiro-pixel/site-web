@@ -19,6 +19,7 @@
               [alt]="currentProfile()!.first_name"
               (contextmenu)="preventContextMenu($event)"
               (dragstart)="preventDrag($event)"
+              (error)="handleImageError($event, currentProfile()!.profile_photo)"
               draggable="false" />
           </div>
         } @else {
@@ -119,6 +120,7 @@
           <img
             [src]="getPhotoUrl(matchedProfile()!.profile_photo)"
             [alt]="matchedProfile()!.first_name"
+            (error)="handleImageError($event, matchedProfile()!.profile_photo)"
           />
         </div>
 

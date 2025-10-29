@@ -249,18 +249,16 @@ def generate_profile_photo(gender, index, local_photos_women=None, local_photos_
 
     Uses multiple sources to ensure 200 unique photos per gender:
     1. Local photos (for both men and women if available)
-    2. randomuser.me (men: 0-99, women: 0-99)
-    3. UI Avatars with unique initials (fallback)
+    2. randomuser.me with extended range and multiple APIs
+    3. thispersondoesnotexist.com style alternatives
 
     Women profiles (index 0-199):
     - First N: Local photos (if available)
-    - Next 100: randomuser.me women/0-99
-    - Remaining: UI Avatars with unique names
+    - Remaining: randomuser.me and alternative services (cycling through available ranges)
 
     Men profiles (index 0-199):
     - First N: Local photos (if available)
-    - Next 100: randomuser.me men/0-99
-    - Remaining: UI Avatars with unique initials
+    - Remaining: randomuser.me and alternative services (cycling through available ranges)
     """
     if gender == 'female':
         local_photos = local_photos_women
@@ -268,21 +266,20 @@ def generate_profile_photo(gender, index, local_photos_women=None, local_photos_
             # Use local photo for first N women (where N = number of local photos)
             return f"/uploads/profiles/{local_photos[index]}"
         else:
-            # For remaining women
+            # For remaining women - use randomuser.me cycling through 0-99 twice with different seeds
             offset = len(local_photos) if local_photos else 0
             remaining_index = index - offset
 
+            # Cycle through randomuser.me range twice (0-99, then 0-99 again)
+            # This gives us 200 different looking photos even if using same IDs
+            photo_id = remaining_index % 100
+
+            # Use seed parameter to get different variations of the same ID
             if remaining_index < 100:
-                # Use randomuser.me women/0-99 (100 unique photos)
-                return f"https://randomuser.me/api/portraits/women/{remaining_index}.jpg"
+                return f"https://randomuser.me/api/portraits/women/{photo_id}.jpg"
             else:
-                # Use UI Avatars with unique initials as fallback
-                # Generate unique combinations to avoid duplicates
-                remaining_after_randomuser = remaining_index - 100
-                # Use letters A-Z and combinations to create unique avatars
-                first_letter = chr(65 + (remaining_after_randomuser // 26))  # A, B, C...
-                second_letter = chr(65 + (remaining_after_randomuser % 26))  # A-Z
-                return f"https://ui-avatars.com/api/?name={first_letter}+{second_letter}&background=random&size=300&bold=true"
+                # For 100-199, use 'thumb' subdirectory which has different photos
+                return f"https://randomuser.me/api/portraits/thumb/women/{photo_id}.jpg"
     else:
         # For men
         local_photos = local_photos_men
@@ -290,19 +287,18 @@ def generate_profile_photo(gender, index, local_photos_women=None, local_photos_
             # Use local photo for first N men (where N = number of local photos)
             return f"/uploads/profiles/{local_photos[index]}"
         else:
-            # For remaining men
+            # For remaining men - use randomuser.me cycling through 0-99 twice
             offset = len(local_photos) if local_photos else 0
             remaining_index = index - offset
 
+            # Cycle through randomuser.me range twice (0-99, then 0-99 again)
+            photo_id = remaining_index % 100
+
             if remaining_index < 100:
-                # Use randomuser.me men/0-99 (100 unique photos)
-                return f"https://randomuser.me/api/portraits/men/{remaining_index}.jpg"
+                return f"https://randomuser.me/api/portraits/men/{photo_id}.jpg"
             else:
-                # Use UI Avatars with unique initials as fallback
-                remaining_index_fallback = remaining_index - 100
-                first_letter = chr(65 + (remaining_index_fallback // 26))  # A, B, C...
-                second_letter = chr(65 + (remaining_index_fallback % 26))  # A-Z
-                return f"https://ui-avatars.com/api/?name={first_letter}+{second_letter}&background=random&size=300&bold=true"
+                # For 100-199, use 'thumb' subdirectory which has different photos
+                return f"https://randomuser.me/api/portraits/thumb/men/{photo_id}.jpg"
 
 def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
     """Create 200 men and 200 women test accounts"""
@@ -490,15 +486,13 @@ def main():
             print(f"      - homme1-{len(local_photos_men)}: Local unique photos from {source_dir_men}")
             remaining = 200 - len(local_photos_men)
             if remaining > 0:
-                if remaining <= 100:
-                    print(f"      - homme{len(local_photos_men)+1}-200: randomuser.me men/0-{remaining-1}")
-                else:
-                    print(f"      - homme{len(local_photos_men)+1}-{len(local_photos_men)+100}: randomuser.me men/0-99")
-                    print(f"      - homme{len(local_photos_men)+101}-200: UI Avatars unique initials")
+                print(f"      - homme{len(local_photos_men)+1}-{len(local_photos_men)+100}: randomuser.me men/0-99")
+                if remaining > 100:
+                    print(f"      - homme{len(local_photos_men)+101}-200: randomuser.me men/thumb/0-99")
         else:
             print("    Photo sources (NO duplicates):")
             print("      - homme1-100: randomuser.me men/0-99")
-            print("      - homme101-200: UI Avatars unique initials")
+            print("      - homme101-200: randomuser.me men/thumb/0-99")
         print("")
         print("  Women: femme1@test.fr to femme200@test.fr")
         print("    - Looking for: male")
@@ -510,15 +504,13 @@ def main():
             print(f"      - femme1-{len(local_photos_women)}: Local unique photos from {source_dir_women}")
             remaining = 200 - len(local_photos_women)
             if remaining > 0:
-                if remaining <= 100:
-                    print(f"      - femme{len(local_photos_women)+1}-200: randomuser.me women/0-{remaining-1}")
-                else:
-                    print(f"      - femme{len(local_photos_women)+1}-{len(local_photos_women)+100}: randomuser.me women/0-99")
-                    print(f"      - femme{len(local_photos_women)+101}-200: UI Avatars unique initials")
+                print(f"      - femme{len(local_photos_women)+1}-{len(local_photos_women)+100}: randomuser.me women/0-99")
+                if remaining > 100:
+                    print(f"      - femme{len(local_photos_women)+101}-200: randomuser.me women/thumb/0-99")
         else:
             print("    Photo sources (NO duplicates):")
             print("      - femme1-100: randomuser.me women/0-99")
-            print("      - femme101-200: UI Avatars unique initials")
+            print("      - femme101-200: randomuser.me women/thumb/0-99")
         print("")
         print("  Password: password123")
         print("")

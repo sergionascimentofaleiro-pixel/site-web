@@ -18,6 +18,11 @@ export class Discover implements OnInit {
   matchedProfile = signal<PotentialMatch | null>(null);
   noMoreProfiles = signal(false);
 
+  // Track retry attempts for each image URL
+  private imageRetryCount = new Map<string, number>();
+  private maxRetries = 3;
+  private retryDelay = 1000; // 1 second
+
   constructor(
     private profileService: ProfileService,
     private translate: TranslateService
@@ -178,5 +183,39 @@ export class Discover implements OnInit {
 
   preventDrag(event: Event): void {
     event.preventDefault();
+  }
+
+  /**
+   * Handle image loading errors with automatic retry
+   * @param event - The error event from the img element
+   * @param originalUrl - The original image URL
+   */
+  handleImageError(event: Event, originalUrl: string | undefined): void {
+    if (!originalUrl) return;
+
+    const imgElement = event.target as HTMLImageElement;
+    const currentRetries = this.imageRetryCount.get(originalUrl) || 0;
+
+    // If we haven't exceeded max retries, try again
+    if (currentRetries < this.maxRetries) {
+      this.imageRetryCount.set(originalUrl, currentRetries + 1);
+
+      console.log(`Image failed to load (attempt ${currentRetries + 1}/${this.maxRetries}): ${originalUrl}`);
+
+      // Retry after delay with cache busting
+      setTimeout(() => {
+        const photoUrl = this.getPhotoUrl(originalUrl);
+        // Add timestamp to bust cache and force reload
+        const cacheBuster = `${photoUrl}${photoUrl.includes('?') ? '&' : '?'}_retry=${Date.now()}`;
+        imgElement.src = cacheBuster;
+      }, this.retryDelay * currentRetries); // Exponential backoff: 1s, 2s, 3s
+    } else {
+      // Max retries exceeded, use fallback
+      console.warn(`Image failed to load after ${this.maxRetries} attempts: ${originalUrl}`);
+      imgElement.src = 'https://via.placeholder.com/400x500?text=Image+Not+Available';
+
+      // Clear retry count for this URL
+      this.imageRetryCount.delete(originalUrl);
+    }
   }
 }
