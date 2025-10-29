@@ -31,15 +31,31 @@
   </nav>
 }
 
-<router-outlet />
+<div class="main-content">
+  <router-outlet />
+</div>
 
 <style>
+  :host {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .main-content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
   .navbar {
     background: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: sticky;
     top: 0;
     z-index: 100;
+    flex-shrink: 0;
   }
 
   .nav-container {

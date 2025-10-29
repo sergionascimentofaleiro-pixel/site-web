@@ -390,6 +390,11 @@
 
   .profile-photo {
     height: 400px;
+
+    .photo-wrapper img {
+      object-fit: contain;
+      background: #f5f5f5;
+    }
   }
 
   .actions {

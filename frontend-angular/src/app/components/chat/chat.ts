@@ -32,6 +32,7 @@ export class Chat implements OnInit, OnDestroy {
 
   private typingTimeout: any;
   private subscriptions: Subscription[] = [];
+  private resizeHandler = () => this.adjustHeaderPosition();
 
   constructor(
     private route: ActivatedRoute,
@@ -50,6 +51,10 @@ export class Chat implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Adjust header position based on navbar height
+    setTimeout(() => this.adjustHeaderPosition(), 0);
+    window.addEventListener('resize', this.resizeHandler);
+
     // Connect to WebSocket
     this.socketService.connect();
 
@@ -129,6 +134,9 @@ export class Chat implements OnInit, OnDestroy {
     // Unsubscribe from all observables (prevents memory leaks)
     this.subscriptions.forEach(sub => sub.unsubscribe());
     this.subscriptions = [];
+
+    // Remove resize event listener
+    window.removeEventListener('resize', this.resizeHandler);
   }
 
   private markMessagesAsRead(matchId: number): void {
@@ -346,5 +354,26 @@ export class Chat implements OnInit, OnDestroy {
       return country;
     }
     return '';
+  }
+
+  private adjustHeaderPosition(): void {
+    // Get navbar height dynamically
+    const navbar = document.querySelector('.navbar') as HTMLElement;
+    if (navbar) {
+      const navbarHeight = navbar.offsetHeight;
+
+      // Apply to chat header and adjust messages padding
+      const chatHeader = document.querySelector('.chat-header') as HTMLElement;
+      const messagesList = document.querySelector('.messages-list') as HTMLElement;
+
+      if (chatHeader) {
+        chatHeader.style.top = `${navbarHeight}px`;
+      }
+
+      if (messagesList) {
+        const headerHeight = chatHeader?.offsetHeight || 70;
+        messagesList.style.paddingTop = `${navbarHeight + headerHeight + 20}px`;
+      }
+    }
   }
 }
