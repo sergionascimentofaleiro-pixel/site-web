@@ -50,6 +50,11 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      pointer-events: auto;
     }
 
     // Watermark on bottom-right of image (masks craiyon.ai pencil)

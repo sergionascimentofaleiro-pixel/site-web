@@ -230,4 +230,12 @@ export class Discover implements OnInit {
     watermark.style.bottom = `${offsetY}px`;
     watermark.style.right = `${offsetX}px`;
   }
+
+  preventContextMenu(event: Event): void {
+    event.preventDefault();
+  }
+
+  preventDrag(event: Event): void {
+    event.preventDefault();
+  }
 }
