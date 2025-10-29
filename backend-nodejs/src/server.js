@@ -16,6 +16,7 @@ const messageRoutes = require('./routes/message');
 const interestRoutes = require('./routes/interest');
 const locationRoutes = require('./routes/location');
 const subscriptionRoutes = require('./routes/subscription');
+const imageRoutes = require('./routes/imageRoutes');
 
 const app = express();
 const server = http.createServer(app);
@@ -49,6 +50,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/interests', interestRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/images', imageRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

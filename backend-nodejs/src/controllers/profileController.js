@@ -1,5 +1,6 @@
 const Profile = require('../models/Profile');
 const Like = require('../models/Like');
+const { generateSignedImageUrl } = require('../utils/imageSignature');
 
 // Create or update profile
 exports.createProfile = async (req, res) => {
@@ -115,7 +116,16 @@ exports.getPotentialMatches = async (req, res) => {
     const language = req.query.lang || 'en';
 
     const matches = await Profile.getMatches(userId, limit, language);
-    res.json(matches);
+
+    // Generate signed URLs for profile photos (only for local uploads)
+    const matchesWithSignedUrls = matches.map(match => {
+      if (match.profile_photo && match.profile_photo.startsWith('/uploads/')) {
+        match.profile_photo = generateSignedImageUrl(match.profile_photo, userId);
+      }
+      return match;
+    });
+
+    res.json(matchesWithSignedUrls);
   } catch (error) {
     console.error('Get matches error:', error);
     res.status(500).json({ error: 'Internal server error' });

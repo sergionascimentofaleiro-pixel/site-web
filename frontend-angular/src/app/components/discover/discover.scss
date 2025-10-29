@@ -56,45 +56,6 @@
       -ms-user-select: none;
       pointer-events: auto;
     }
-
-    // Watermark on bottom-right of image (masks craiyon.ai pencil)
-    .watermark {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 90px;
-      height: 90px;
-      background: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      z-index: 10;
-      border-radius: 20px 0 0 0;
-      padding: 8px;
-
-      .watermark-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 2px;
-      }
-
-      .watermark-logo {
-        font-size: 1.8rem;
-        line-height: 1;
-      }
-
-      .watermark-text {
-        font-size: 0.65rem;
-        font-weight: 700;
-        color: var(--primary-color);
-        font-family: 'Georgia', 'Times New Roman', serif;
-        letter-spacing: 0.5px;
-        text-transform: lowercase;
-      }
-    }
   }
 
   .no-photo {
