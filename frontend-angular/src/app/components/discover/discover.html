@@ -18,7 +18,12 @@
               [src]="getPhotoUrl(currentProfile()!.profile_photo)"
               [alt]="currentProfile()!.first_name"
               (load)="onImageLoad($event)" />
-            <div class="watermark" #watermark>curvy.com</div>
+            <div class="watermark" #watermark>
+              <div class="watermark-content">
+                <div class="watermark-logo">💕</div>
+                <div class="watermark-text">curvy.com</div>
+              </div>
+            </div>
           </div>
         } @else {
           <div class="no-photo">{{ 'discover.noPhoto' | translate }}</div>
