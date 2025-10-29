@@ -399,6 +399,11 @@
 
   .profile-photo {
     height: 300px;
+
+    img {
+      object-fit: contain;
+      background: #f5f5f5;
+    }
   }
 
   .profile-info {
@@ -454,6 +459,11 @@
 
   .profile-photo {
     height: 280px;
+
+    img {
+      object-fit: contain;
+      background: #f5f5f5;
+    }
   }
 
   .profile-info {
