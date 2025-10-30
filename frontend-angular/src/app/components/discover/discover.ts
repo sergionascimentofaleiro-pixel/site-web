@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Profile as ProfileService, PotentialMatch } from '../../services/profile';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { environment } from '../../config/environment';
 
 @Component({
   selector: 'app-discover',
@@ -165,12 +166,12 @@ export class Discover implements OnInit {
 
     // If it's a signed URL (starts with /api/images/secure), prepend backend URL
     if (url.startsWith('/api/images/secure')) {
-      return `http://localhost:3000${url}`;
+      return `${environment.socketUrl}${url}`;
     }
 
     // If it's a relative URL (uploaded file), prepend backend URL
     if (url.startsWith('/uploads/')) {
-      return `http://localhost:3000${url}`;
+      return `${environment.socketUrl}${url}`;
     }
 
     // External URL (e.g., from craiyon.ai)

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../config/environment';
 
 export interface MatchData {
   matchId: number;
@@ -20,7 +21,7 @@ export interface MatchData {
   providedIn: 'root'
 })
 export class Match {
-  private readonly apiUrl = 'http://localhost:3000/api/matches';
+  private readonly apiUrl = `${environment.apiUrl}/matches`;
 
   constructor(private http: HttpClient) {}
 

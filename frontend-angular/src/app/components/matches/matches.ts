@@ -5,6 +5,7 @@ import { Match as MatchService, MatchData } from '../../services/match';
 import { Message as MessageService } from '../../services/message';
 import { TranslateModule } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../config/environment';
 
 interface MatchWithUnread extends MatchData {
   unreadCount?: number;
@@ -95,7 +96,7 @@ export class Matches implements OnInit {
   getPhotoUrl(url: string): string {
     // If it's a relative URL (uploaded file), prepend backend URL
     if (url && url.startsWith('/uploads/')) {
-      return `http://localhost:3000${url}`;
+      return `${environment.socketUrl}${url}`;
     }
     return url;
   }

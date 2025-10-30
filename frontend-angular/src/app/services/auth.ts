@@ -2,6 +2,7 @@ import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
+import { environment } from '../config/environment';
 
 export interface User {
   id: number;
@@ -23,7 +24,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class Auth {
-  private readonly apiUrl = 'http://localhost:3000/api';
+  private readonly apiUrl = environment.apiUrl;
   private readonly tokenKey = 'auth_token';
 
   public currentUser = signal<User | null>(null);

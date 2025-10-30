@@ -2,6 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { Auth } from './auth';
 import { Subject, Observable } from 'rxjs';
+import { environment } from '../config/environment';
 
 export interface MessageData {
   id: number;
@@ -54,7 +55,7 @@ export class SocketService {
 
     console.log('Attempting to connect to WebSocket...');
 
-    this.socket = io('http://localhost:3000', {
+    this.socket = io(environment.socketUrl, {
       auth: {
         token
       },

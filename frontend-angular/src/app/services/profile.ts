@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../config/environment';
 
 export interface ProfileData {
   id?: number;
@@ -35,7 +36,7 @@ export interface PotentialMatch extends ProfileData {
   providedIn: 'root'
 })
 export class Profile {
-  private readonly apiUrl = 'http://localhost:3000/api/profile';
+  private readonly apiUrl = `${environment.apiUrl}/profile`;
 
   constructor(private http: HttpClient) {}
 

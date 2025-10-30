@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../config/environment';
 
 export interface Interest {
   interest_id: number;
@@ -30,7 +31,7 @@ export interface ProfileInterest {
 })
 export class InterestService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/api/interests';
+  private apiUrl = `${environment.apiUrl}/interests`;
 
   getAllInterests(language?: string): Observable<InterestCategory[]> {
     const lang = language || localStorage.getItem('language') || 'fr';

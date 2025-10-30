@@ -7,6 +7,7 @@ import { LocationService, Country, State, City } from '../../services/location';
 import { Auth } from '../../services/auth';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../config/environment';
 
 @Component({
   selector: 'app-profile',
@@ -469,7 +470,7 @@ export class Profile implements OnInit {
   getPhotoUrl(url: string): string {
     // If it's a relative URL (uploaded file), prepend backend URL
     if (url && url.startsWith('/uploads/')) {
-      return `http://localhost:3000${url}`;
+      return `${environment.socketUrl}${url}`;
     }
     return url;
   }

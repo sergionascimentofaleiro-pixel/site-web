@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../config/environment';
 
 export interface MessageData {
   id: number;
@@ -18,7 +19,7 @@ export interface MessageData {
   providedIn: 'root'
 })
 export class Message {
-  private readonly apiUrl = 'http://localhost:3000/api/messages';
+  private readonly apiUrl = `${environment.apiUrl}/messages`;
 
   constructor(private http: HttpClient) {}
 

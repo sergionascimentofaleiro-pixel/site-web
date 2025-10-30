@@ -9,6 +9,7 @@ import { SocketService } from '../../services/socket';
 import { Subscription as SubscriptionService } from '../../services/subscription';
 import { TranslateModule } from '@ngx-translate/core';
 import { Subscription } from 'rxjs';
+import { environment } from '../../config/environment';
 
 @Component({
   selector: 'app-chat',
@@ -333,7 +334,7 @@ export class Chat implements OnInit, OnDestroy {
   getPhotoUrl(url: string): string {
     // If it's a relative URL (uploaded file), prepend backend URL
     if (url && url.startsWith('/uploads/')) {
-      return `http://localhost:3000${url}`;
+      return `${environment.socketUrl}${url}`;
     }
     return url;
   }

@@ -6,6 +6,7 @@ import { Match as MatchService, MatchData } from '../../services/match';
 import { Message as MessageService } from '../../services/message';
 import { SocketService } from '../../services/socket';
 import { TranslateModule } from '@ngx-translate/core';
+import { environment } from '../../config/environment';
 
 interface ConversationPreview extends MatchData {
   lastMessage?: string;
@@ -172,7 +173,7 @@ export class Messages implements OnInit, OnDestroy {
   getPhotoUrl(url: string): string {
     // If it's a relative URL (uploaded file), prepend backend URL
     if (url && url.startsWith('/uploads/')) {
-      return `http://localhost:3000${url}`;
+      return `${environment.socketUrl}${url}`;
     }
     return url;
   }

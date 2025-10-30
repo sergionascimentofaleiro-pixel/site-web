@@ -249,7 +249,7 @@ vercel
 # - Set up and deploy? Yes
 # - Which scope? Votre compte
 # - Link to existing project? No
-# - Project name? dating-app-frontend
+# - Project name? curvy
 # - Directory? ./
 # - Override settings? No
 

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../config/environment';
 
 export interface SubscriptionPlan {
   id: string;
@@ -54,7 +55,7 @@ export interface CheckoutSession {
   providedIn: 'root'
 })
 export class Subscription {
-  private readonly apiUrl = 'http://localhost:3000/api/subscription';
+  private readonly apiUrl = `${environment.apiUrl}/subscription`;
 
   constructor(private http: HttpClient) {}
 
