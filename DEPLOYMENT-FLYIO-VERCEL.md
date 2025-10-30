@@ -16,11 +16,21 @@ Ce guide vous montre comment déployer votre application de rencontres gratuitem
 ### Étape 1 : Installer et configurer Fly CLI
 
 ```bash
-# Installer Fly CLI
-m
+# Installer Fly CLI (Linux/macOS)
+curl -L https://fly.io/install.sh | sh
 
-# Se connecter
+# Ajouter Fly CLI au PATH (ajouter dans ~/.bashrc ou ~/.zshrc)
+export FLYCTL_INSTALL="$HOME/.fly"
+export PATH="$FLYCTL_INSTALL/bin:$PATH"
+
+# Recharger le shell ou sourcer le fichier
+source ~/.bashrc  # ou source ~/.zshrc
+
+# Se connecter à Fly.io
 flyctl auth login
+
+# Vérifier que l'installation fonctionne
+flyctl version
 ```
 
 ### Étape 2 : Créer l'application Fly.io (Backend)
@@ -147,15 +157,24 @@ cd backend-nodejs/database
 ### Étape 7 : Vérifier le déploiement
 
 ```bash
-# Ouvrir l'application dans le navigateur
-flyctl open
+# Se placer dans le dossier backend (où se trouve fly.toml)
+cd /workspace/site-web/backend-nodejs
 
-# Vérifier les logs
-flyctl logs
+# Vérifier le statut de l'application
+fly status -a curvy-backend
 
 # Tester le health endpoint
 curl https://curvy-backend.fly.dev/api/health
 # Résultat attendu : {"status":"OK","message":"Dating app backend is running"}
+
+# Ouvrir le health endpoint dans le navigateur
+fly apps open -a curvy-backend
+# Puis ajouter /api/health à l'URL dans le navigateur
+# OU directement :
+xdg-open https://curvy-backend.fly.dev/api/health
+
+# Vérifier les logs
+fly logs -a curvy-backend
 ```
 
 ---
@@ -299,19 +318,22 @@ app.use(cors({
 
 ```bash
 # Logs en temps réel
-flyctl logs
+flyctl logs -a curvy-backend
+
+# Logs avec filtre par niveau
+flyctl logs -a curvy-backend --level error
 
 # Statut de l'application
-flyctl status
+flyctl status -a curvy-backend
 
 # Métriques
-flyctl metrics
+flyctl metrics -a curvy-backend
 
 # Se connecter à la machine
-flyctl ssh console
+flyctl ssh console -a curvy-backend
 
 # Redémarrer l'application
-flyctl apps restart dating-app-backend
+flyctl apps restart -a curvy-backend
 ```
 
 ### Vercel (Frontend)
@@ -321,6 +343,211 @@ flyctl apps restart dating-app-backend
 3. Onglet "Deployments" : Voir l'historique
 4. Onglet "Analytics" : Métriques de performance
 5. Onglet "Logs" : Logs de build et runtime
+
+---
+
+## 🔄 Gestion de l'application Fly.io
+
+### Redéployer après des modifications de code
+
+```bash
+# Se placer dans le dossier backend (où se trouve fly.toml)
+cd /workspace/site-web/backend-nodejs
+
+# Déployer la nouvelle version
+fly deploy -a curvy-backend
+
+# OU si fly.toml contient déjà app = 'curvy-backend'
+fly deploy
+
+# Cette commande va :
+# - Construire une nouvelle image Docker
+# - La déployer sur Fly.io
+# - Redémarrer automatiquement l'application
+# Durée : ~2-3 minutes
+```
+
+### Arrêter l'application
+
+```bash
+# Option 1 : Mettre en pause les machines (recommandé, gratuit)
+fly scale count 0 -a curvy-backend
+
+# Option 2 : Arrêter complètement l'app
+fly apps stop -a curvy-backend
+
+# Les deux options arrêtent l'application sans perdre les données
+# La base PostgreSQL et le volume uploads restent intacts
+```
+
+### Démarrer/Redémarrer l'application
+
+```bash
+# Option 1 : Redémarrer l'app (si elle tourne déjà)
+fly apps restart -a curvy-backend
+
+# Option 2 : Remettre les machines en service (si scale count 0)
+fly scale count 1 -a curvy-backend
+
+# Option 3 : Forcer le redémarrage d'une machine spécifique
+fly machine restart <machine-id> -a curvy-backend
+```
+
+### Vérifier l'état de l'application
+
+```bash
+# Voir le statut global
+fly status -a curvy-backend
+
+# Voir les machines en cours d'exécution
+fly machine list -a curvy-backend
+
+# Voir les informations détaillées sur l'app
+fly info -a curvy-backend
+
+# Ouvrir l'app dans le navigateur
+fly apps open -a curvy-backend
+```
+
+### Gestion de la base de données PostgreSQL
+
+```bash
+# Voir l'état de la base de données
+fly postgres db list -a curvy-backend-db
+
+# Se connecter à la console PostgreSQL
+fly postgres connect -a curvy-backend-db
+
+# Dans la console psql, vous pouvez exécuter :
+# \l                    -- Lister les bases
+# \c curvy_backend      -- Se connecter à la base
+# \dt                   -- Lister les tables
+# SELECT COUNT(*) FROM users;
+
+# Voir les métriques de la base
+fly postgres metrics -a curvy-backend-db
+
+# Voir les logs de PostgreSQL
+fly logs -a curvy-backend-db
+
+# Redémarrer la base de données (attention !)
+fly apps restart -a curvy-backend-db
+```
+
+### Gestion du volume persistent (uploads)
+
+```bash
+# Voir les volumes
+fly volumes list -a curvy-backend
+
+# Voir l'espace utilisé
+fly ssh console -a curvy-backend -C "df -h /app/uploads"
+
+# Explorer le contenu du volume
+fly ssh console -a curvy-backend -C "ls -lh /app/uploads/profiles"
+
+# Compter les fichiers dans le volume
+fly ssh console -a curvy-backend -C "find /app/uploads -type f | wc -l"
+
+# Accéder au volume via SFTP (pour upload/download manuel)
+fly sftp shell -a curvy-backend
+# Dans la console SFTP :
+# cd /app/uploads/profiles
+# ls
+# get photo.jpg    # Télécharger
+# put local.jpg    # Uploader
+```
+
+### Gestion des secrets (variables d'environnement)
+
+```bash
+# Voir la liste des secrets configurés (les valeurs sont cachées)
+fly secrets list -a curvy-backend
+
+# Ajouter ou modifier un secret
+fly secrets set NEW_SECRET=value -a curvy-backend
+
+# Modifier plusieurs secrets à la fois
+fly secrets set \
+  JWT_SECRET=new_secret \
+  IMAGE_SIGNATURE_SECRET=new_image_secret \
+  -a curvy-backend
+
+# Supprimer un secret
+fly secrets unset SECRET_NAME -a curvy-backend
+
+# ⚠️ Attention : Modifier un secret redémarre automatiquement l'app
+```
+
+### Mise à l'échelle (scaling)
+
+```bash
+# Changer le nombre de machines (instances)
+fly scale count 2 -a curvy-backend  # 2 instances pour haute disponibilité
+
+# Changer la taille de la mémoire
+fly scale memory 1024 -a curvy-backend  # 1 GB RAM
+
+# Voir la configuration actuelle
+fly scale show -a curvy-backend
+
+# Note : Le plan gratuit limite à 3 VMs partagées et 512 MB RAM
+```
+
+### Commandes de diagnostic
+
+```bash
+# Voir les checks de santé
+fly checks list -a curvy-backend
+
+# Voir l'historique des déploiements
+fly releases -a curvy-backend
+
+# Revenir à une version précédente
+fly releases rollback <version> -a curvy-backend
+
+# Voir la configuration actuelle
+fly config show -a curvy-backend
+
+# Valider le fichier fly.toml
+fly config validate
+```
+
+### Accès SSH et debugging
+
+```bash
+# Se connecter en SSH interactif
+fly ssh console -a curvy-backend
+
+# Une fois connecté, vous pouvez :
+# cd /app                   # Aller dans le dossier de l'app
+# ls -la                    # Lister les fichiers
+# cat .env                  # Voir les variables (secrets non inclus)
+# node --version            # Vérifier Node.js
+# npm list                  # Voir les dépendances
+# exit                      # Sortir
+
+# Exécuter une commande unique via SSH (sans session interactive)
+fly ssh console -a curvy-backend -C "node --version"
+fly ssh console -a curvy-backend -C "ls -lh /app/uploads"
+fly ssh console -a curvy-backend -C "cat /app/package.json"
+
+# Voir les processus en cours
+fly ssh console -a curvy-backend -C "ps aux"
+```
+
+### Monitoring et alertes
+
+```bash
+# Voir les métriques en temps réel
+fly dashboard -a curvy-backend
+
+# Voir l'utilisation des ressources
+fly machine status -a curvy-backend
+
+# Voir le trafic réseau
+fly wireguard list
+```
 
 ---
 
