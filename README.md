@@ -1,13 +1,13 @@
 # Application de Rencontres (Dating App)
 
-Application full-stack similaire à Tinder, développée avec Angular 20 et Node.js/Express + MariaDB.
+Application full-stack similaire à Tinder, développée avec Angular 20 et Node.js/Express + **PostgreSQL** ou **MariaDB/MySQL**.
 
 ## 🏗️ Architecture
 
 ```
 vscode-workspace/
 ├── frontend-angular/    # Application Angular 20 (standalone components)
-├── backend-nodejs/      # API Express.js + MariaDB
+├── backend-nodejs/      # API Express.js + PostgreSQL/MariaDB (dual support)
 └── CLAUDE.md           # Instructions pour Claude Code
 ```
 
@@ -15,24 +15,32 @@ Le frontend et le backend sont des applications séparées qui communiquent via 
 
 ## 🚀 Quick Start
 
-### 1. Base de données (MariaDB)
+### 1. Base de données (PostgreSQL ou MariaDB)
 
+**Configuration** - Éditer `backend-nodejs/.env` :
+```env
+DB_TYPE=postgres   # ou 'mysql' pour MariaDB/MySQL
+DB_PORT=5432       # 3306 pour MySQL
+```
+
+**Initialisation** :
 ```bash
 cd backend-nodejs/database
 ./full-reset.sh
 ```
 
-**Ce script crée** (1-2 minutes):
+**Le script détecte automatiquement `DB_TYPE`** et crée (1-2 minutes):
 - Tables (users, profiles, matches, messages, interests, locations)
 - 400 comptes de test français (200 hommes, 200 femmes) avec photos
 - Données géographiques mondiales (252 pays, 305 états, 224k villes avec GPS)
 - Traductions i18n (fr, en, es, pt)
 - 100 intérêts répartis en 10 catégories
 
-**Credentials:**
-- Root: `Manuela2011`
-- Dev user: `devuser` / `Manuela2011!`
-- Database: `dating_app`
+**Credentials** :
+- PostgreSQL : `devuser` / `Manuela2011!`
+- MariaDB root : `Manuela2011`
+- MariaDB dev : `devuser` / `Manuela2011!`
+- Database : `dating_app`
 
 ### 2. Backend (Port 3000)
 
@@ -84,10 +92,12 @@ npm start
 
 ```env
 # Database
+DB_TYPE=postgres              # 'postgres' ou 'mysql'
 DB_HOST=localhost
 DB_USER=devuser
 DB_PASSWORD=Manuela2011!
 DB_NAME=dating_app
+DB_PORT=5432                  # 5432 pour PostgreSQL, 3306 pour MySQL
 
 # JWT
 JWT_SECRET=your_jwt_secret_change_in_production_2024
@@ -110,6 +120,8 @@ PRICE_YEARLY=100.00
 PHOTOS_SOURCE_DIR_WOMEN=/chemin/vers/photos-femmes
 PHOTOS_SOURCE_DIR_MEN=/chemin/vers/photos-hommes
 ```
+
+**Note** : L'application détecte automatiquement le type de base et adapte toutes les requêtes SQL.
 
 ### Frontend
 

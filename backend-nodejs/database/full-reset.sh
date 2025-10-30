@@ -31,12 +31,35 @@ if [ "$DB_TYPE" = "postgres" ]; then
     DB_USER="postgres"
     DB_PASS="postgres"
     export PGPASSWORD="$DB_PASS"
+    DB_SERVICE="postgresql"
 else
     # MySQL/MariaDB configuration (default)
     DB_USER="devuser"
     DB_PASS="Manuela2011!"
     ROOT_PASS="Manuela2011"
+    DB_SERVICE="mariadb"
 fi
+
+# Step 0: Restart database service
+echo "🔄 Restarting $DB_SERVICE service..."
+echo ""
+
+# Stop the service (ignore errors if already stopped)
+sudo systemctl stop $DB_SERVICE 2>/dev/null || echo "ℹ️  Service was not running"
+
+# Start the service
+sudo systemctl start $DB_SERVICE
+
+if [ $? -eq 0 ]; then
+    echo "✅ $DB_SERVICE service started successfully"
+    # Wait a moment for the service to be fully ready
+    sleep 2
+else
+    echo "❌ Error starting $DB_SERVICE service"
+    exit 1
+fi
+
+echo ""
 
 echo "⚠️  WARNING: This will DELETE all data in the database!"
 echo "Database: $DB_NAME"
@@ -52,8 +75,8 @@ echo ""
 echo "Starting full reset..."
 echo ""
 
-# Step 0: Clean old uploaded photos
-echo "0️⃣  Cleaning old uploaded photos..."
+# Step 1: Clean old uploaded photos
+echo "1️⃣  Cleaning old uploaded photos..."
 UPLOADS_DIR="../uploads/profiles"
 if [ -d "$UPLOADS_DIR" ]; then
     # Remove test profile photos (keep user uploaded photos like user_401_*.*)
@@ -66,8 +89,8 @@ fi
 
 echo ""
 
-# Step 1: Drop and recreate database
-echo "1️⃣  Dropping and recreating database..."
+# Step 2: Drop and recreate database
+echo "2️⃣  Dropping and recreating database..."
 if [ "$DB_TYPE" = "postgres" ]; then
     psql -U $DB_USER -h localhost << EOF
 DROP DATABASE IF EXISTS $DB_NAME;
@@ -89,9 +112,9 @@ else
     exit 1
 fi
 
-# Step 2: Create main schema
+# Step 3: Create main schema
 echo ""
-echo "2️⃣  Creating main tables (users, profiles, likes, matches, messages)..."
+echo "3️⃣  Creating main tables (users, profiles, likes, matches, messages)..."
 if [ "$DB_TYPE" = "postgres" ]; then
     psql -U $DB_USER -h localhost -d $DB_NAME -f schema-postgres.sql
 
@@ -113,9 +136,9 @@ else
     exit 1
 fi
 
-# Step 3: Create interests schema
+# Step 4: Create interests schema
 echo ""
-echo "3️⃣  Creating interests tables..."
+echo "4️⃣  Creating interests tables..."
 if [ "$DB_TYPE" = "postgres" ]; then
     echo "ℹ️  Skipping (already included in main schema for PostgreSQL)"
 else
@@ -127,9 +150,9 @@ else
     echo "✅ Interests schema created successfully"
 fi
 
-# Step 4: Seed interests data
+# Step 5: Seed interests data
 echo ""
-echo "4️⃣  Seeding interests data (10 categories, 100 interests)..."
+echo "5️⃣  Seeding interests data (10 categories, 100 interests)..."
 if [ "$DB_TYPE" = "postgres" ]; then
     # Remove MySQL-specific SET commands for PostgreSQL
     grep -v "^SET " interests-seed.sql | psql -U $DB_USER -h localhost -d $DB_NAME > /dev/null 2>&1
@@ -147,9 +170,9 @@ else
     echo "✅ Interests data seeded successfully"
 fi
 
-# Step 4.5: Create interest translation tables
+# Step 6: Create interest translation tables
 echo ""
-echo "4️⃣.5 Creating interest translation tables..."
+echo "6️⃣  Creating interest translation tables..."
 if [ "$DB_TYPE" = "postgres" ]; then
     echo "ℹ️  Skipping (already included in main schema for PostgreSQL)"
 else
@@ -161,9 +184,9 @@ else
     echo "✅ Interest translation tables created successfully"
 fi
 
-# Step 4.6: Seed interest translations
+# Step 7: Seed interest translations
 echo ""
-echo "4️⃣.6 Seeding interest translations (en, fr, es, pt)..."
+echo "7️⃣  Seeding interest translations (en, fr, es, pt)..."
 if [ "$DB_TYPE" = "postgres" ]; then
     # Remove MySQL-specific SET commands and convert \' to '' for PostgreSQL
     grep -v "^SET " interests-translations-seed.sql | sed "s/\\\\'/\'\'/g" | psql -U $DB_USER -h localhost -d $DB_NAME
@@ -181,9 +204,9 @@ else
     echo "✅ Interest translations seeded successfully (4 languages)"
 fi
 
-# Step 4.7: Create location tables
+# Step 8: Create location tables
 echo ""
-echo "4️⃣.7 Creating location tables (countries, states, cities)..."
+echo "8️⃣  Creating location tables (countries, states, cities)..."
 if [ "$DB_TYPE" = "postgres" ]; then
     echo "ℹ️  Skipping (already included in main schema for PostgreSQL)"
 else
@@ -195,9 +218,9 @@ else
     echo "✅ Location tables created successfully"
 fi
 
-# Step 4.8: Import GeoNames data (all countries and cities with population > 500)
+# Step 9: Import GeoNames data (all countries and cities with population > 500)
 echo ""
-echo "4️⃣.8 Importing GeoNames data (countries, states, cities)..."
+echo "9️⃣  Importing GeoNames data (countries, states, cities)..."
 echo "    This will download and import worldwide location data."
 echo "    Download size: ~25 MB, Import time: ~15-20 seconds"
 echo ""
@@ -213,9 +236,9 @@ else
     mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < locations-seed.sql
 fi
 
-# Step 4.9: Add foreign key constraints for locations in profiles table
+# Step 10: Add foreign key constraints for locations in profiles table
 echo ""
-echo "4️⃣.9 Adding location foreign keys to profiles table..."
+echo "🔟 Adding location foreign keys to profiles table..."
 if [ "$DB_TYPE" = "postgres" ]; then
     psql -U $DB_USER -h localhost -d $DB_NAME -f add-location-foreign-keys.sql
 else
@@ -229,9 +252,9 @@ else
     exit 1
 fi
 
-# Step 5: Generate French test data (200 men + 200 women)
+# Step 11: Generate French test data (200 men + 200 women)
 echo ""
-echo "5️⃣  Generating French test data (200 men + 200 women)..."
+echo "1️⃣1️⃣  Generating French test data (200 men + 200 women)..."
 echo "    This will create realistic French profiles with:"
 echo "    - Gender-appropriate photos from randomuser.me"
 echo "    - Random French cities"

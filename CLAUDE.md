@@ -7,13 +7,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 This is a full-stack **dating application** (similar to Tinder) with two main components:
 
 - **frontend-angular/**: Angular 20 frontend application (standalone components architecture)
-- **backend-nodejs/**: Express.js backend API with MariaDB
+- **backend-nodejs/**: Express.js backend API with **PostgreSQL** or **MariaDB/MySQL** (dual support)
 
 The backend and frontend are separate applications that run independently and communicate via HTTP.
 
 ### Database Setup
 
-The application uses MariaDB. To set up the complete database with all features:
+The application supports both **PostgreSQL** and **MariaDB/MySQL** with automatic detection and query conversion.
+
+**Configuration:**
+
+Edit `backend-nodejs/.env` to choose database type:
+```env
+DB_TYPE=postgres   # or 'mysql' for MariaDB/MySQL
+DB_PORT=5432       # 3306 for MySQL
+```
 
 **Full Reset (Recommended):**
 ```bash
@@ -21,15 +29,25 @@ cd backend-nodejs/database
 ./full-reset.sh
 ```
 
-This script will:
-1. Drop and recreate the database
-2. Create all tables (users, profiles, matches, messages, interests, locations)
-3. Seed interest categories and translations (en, fr, es, pt)
-4. Import worldwide location data from GeoNames (~225k cities with population > 500)
-5. Create test accounts (40 users) with random interests
+The script automatically detects `DB_TYPE` from `.env` and:
+1. Drops and recreates the database
+2. Creates all tables (users, profiles, matches, messages, interests, locations)
+3. Seeds interest categories and translations (en, fr, es, pt)
+4. Imports worldwide location data from GeoNames (~225k cities with population > 500)
+5. Creates test accounts (400 users) with random interests
 6. Total time: ~1-2 minutes
 
-**Manual Setup:**
+**Manual Setup (PostgreSQL):**
+```bash
+sudo -u postgres psql
+CREATE USER devuser WITH PASSWORD 'Manuela2011!';
+ALTER USER devuser CREATEDB;
+\q
+
+psql -U devuser -h localhost -d dating_app -f backend-nodejs/database/schema-postgres.sql
+```
+
+**Manual Setup (MariaDB/MySQL):**
 ```bash
 mysql -u root -p
 source backend-nodejs/database/setup.sql
@@ -37,9 +55,15 @@ source backend-nodejs/database/schema.sql
 ```
 
 **Database Credentials:**
-- Root password: `Manuela2011`
-- Dev user: `devuser` / `Manuela2011!`
+- PostgreSQL: `devuser` / `Manuela2011!`
+- MariaDB root: `Manuela2011`
+- MariaDB dev: `devuser` / `Manuela2011!`
 - Database: `dating_app`
+
+**Dual Compatibility:**
+- The `src/config/database.js` file provides automatic query conversion between MySQL and PostgreSQL syntax
+- All SQL placeholders (`?` → `$1, $2, ...`), INSERT RETURNING, date formats, and aggregation functions are handled automatically
+- Models use conditional logic for database-specific syntax (UPSERT, INSERT IGNORE, GROUP_CONCAT/STRING_AGG)
 
 See `backend-nodejs/database/README.md` for complete database documentation.
 
@@ -56,9 +80,11 @@ npm start        # Start production server
 
 Backend runs on port 3000 by default (configurable via `.env` file).
 
-Database: MariaDB with credentials configured in `.env`:
+Database: PostgreSQL or MariaDB/MySQL with credentials configured in `.env`:
+- Type: Set via `DB_TYPE` environment variable (`postgres` or `mysql`)
 - User: `devuser`
 - Database connection settings in environment variables
+- Port: 5432 (PostgreSQL) or 3306 (MySQL)
 
 ### Frontend (Angular)
 

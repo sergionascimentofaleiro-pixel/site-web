@@ -1,6 +1,6 @@
 # Backend Node.js - Dating App
 
-API REST Express.js avec MariaDB pour une application de rencontres.
+API REST Express.js avec support **MariaDB/MySQL** et **PostgreSQL** pour une application de rencontres.
 
 ## 🚀 Démarrage
 
@@ -16,6 +16,29 @@ npm run dev        # Serveur dev avec nodemon (auto-reload)
 npm start          # Serveur production
 ```
 
+## 🔄 Support Dual Database
+
+L'application supporte **MariaDB/MySQL** ET **PostgreSQL** avec un système de switch transparent.
+
+### Configuration du type de base
+
+Dans le fichier `.env`, définir:
+
+```env
+DB_TYPE=postgres   # ou 'mysql' pour MariaDB/MySQL
+DB_HOST=localhost
+DB_USER=devuser
+DB_PASSWORD=Manuela2011!
+DB_NAME=dating_app
+DB_PORT=5432       # 3306 pour MySQL
+```
+
+**Compatibilité automatique**:
+- Conversion automatique des placeholders (`?` → `$1, $2, ...`)
+- Gestion des différences de syntaxe SQL
+- Adaptation des types de données
+- Format de retour unifié (compatibilité mysql2)
+
 ## 🗄️ Base de données
 
 ### Setup complet (recommandé)
@@ -25,7 +48,7 @@ cd database
 ./full-reset.sh
 ```
 
-**Ce script crée** (1-2 minutes):
+**Le script détecte automatiquement le type de base** depuis `.env` et crée (1-2 minutes):
 - Base de données `dating_app`
 - Tables complètes (users, profiles, matches, messages, interests, locations, subscriptions)
 - 400 comptes de test français (200 hommes, 200 femmes) avec photos uniques
@@ -34,6 +57,20 @@ cd database
 
 ### Setup manuel
 
+**PostgreSQL**:
+```bash
+cd database
+# Créer l'utilisateur et la base
+sudo -u postgres psql
+CREATE USER devuser WITH PASSWORD 'Manuela2011!';
+ALTER USER devuser CREATEDB;
+\q
+
+# Importer le schéma
+psql -U devuser -h localhost -d dating_app -f schema-postgres.sql
+```
+
+**MariaDB/MySQL**:
 ```bash
 cd database
 mysql -u root -p
@@ -51,7 +88,7 @@ source interests-seed.sql
 backend-nodejs/
 ├── src/
 │   ├── config/
-│   │   └── database.js      # Configuration MariaDB
+│   │   └── database.js      # Configuration dual PostgreSQL/MariaDB
 │   ├── controllers/
 │   │   ├── authController.js
 │   │   ├── profileController.js
@@ -235,11 +272,12 @@ Profils triés par score décroissant.
 PORT=3000
 
 # Database
+DB_TYPE=postgres              # 'postgres' ou 'mysql'
 DB_HOST=localhost
 DB_USER=devuser
 DB_PASSWORD=Manuela2011!
 DB_NAME=dating_app
-DB_PORT=3306
+DB_PORT=5432                  # 5432 pour PostgreSQL, 3306 pour MySQL
 
 # JWT
 JWT_SECRET=your_jwt_secret_change_in_production_2024
@@ -266,10 +304,32 @@ PHOTOS_SOURCE_DIR_WOMEN=/chemin/vers/photos-femmes
 PHOTOS_SOURCE_DIR_MEN=/chemin/vers/photos-hommes
 ```
 
+### Différences PostgreSQL vs MariaDB/MySQL
+
+| Aspect | PostgreSQL | MariaDB/MySQL |
+|--------|-----------|---------------|
+| **Placeholders** | `$1, $2, $3` | `?` |
+| **Auto-increment** | `SERIAL` | `AUTO_INCREMENT` |
+| **Types énumérés** | `VARCHAR + CHECK` | `ENUM` |
+| **Agrégation chaînes** | `STRING_AGG()` | `GROUP_CONCAT()` |
+| **Dates** | Objets Date | Chaînes ISO |
+| **INSERT IGNORE** | `ON CONFLICT DO NOTHING` | `INSERT IGNORE` |
+| **UPSERT** | `ON CONFLICT DO UPDATE` | `ON DUPLICATE KEY UPDATE` |
+| **RETURNING** | `INSERT ... RETURNING id` | `LAST_INSERT_ID()` |
+| **Port par défaut** | 5432 | 3306 |
+
+**Note**: La couche d'abstraction dans `src/config/database.js` gère automatiquement ces différences.
+
 ## 📁 Scripts Database
 
 ### `full-reset.sh`
 Réinitialisation complète + données de test (400 comptes).
+
+**Compatible PostgreSQL et MariaDB/MySQL**:
+- Détecte automatiquement `DB_TYPE` depuis `.env`
+- Utilise `psql` ou `mysql` selon la configuration
+- Charge le schéma approprié (`schema-postgres.sql` ou `schema.sql`)
+- Adapte la syntaxe SQL (guillemets, échappement, etc.)
 
 ### `generate-french-test-data.py`
 Génère 400 profils français réalistes avec:
@@ -279,6 +339,11 @@ Génère 400 profils français réalistes avec:
 - 3-8 intérêts par profil
 - Photos uniques (locales + randomuser.me + UI Avatars)
 - Bios en français
+
+**Compatible dual database**:
+- Détecte `DB_TYPE` depuis `.env`
+- Utilise `psycopg2` (PostgreSQL) ou `mysql-connector-python` (MySQL)
+- Adapte les requêtes (RANDOM() vs RAND(), RETURNING id, etc.)
 
 ### Configuration
 
@@ -313,6 +378,7 @@ Comptes de test après `./full-reset.sh`:
 {
   "express": "^5.x",
   "mysql2": "^3.x",
+  "pg": "^8.x",
   "bcryptjs": "^2.x",
   "jsonwebtoken": "^9.x",
   "socket.io": "^4.x",
@@ -322,6 +388,17 @@ Comptes de test après `./full-reset.sh`:
   "node-cron": "^3.x"
 }
 ```
+
+**Bases de données**:
+- `mysql2` - Connecteur MariaDB/MySQL (avec pool de connexions)
+- `pg` - Connecteur PostgreSQL (avec pool de connexions)
+
+**Installation**:
+```bash
+npm install
+```
+
+Les deux connecteurs sont installés, seul celui correspondant à `DB_TYPE` sera utilisé au runtime.
 
 ## 🛡️ Sécurité
 
@@ -335,6 +412,7 @@ Comptes de test après `./full-reset.sh`:
 
 - [Express.js](https://expressjs.com/)
 - [MySQL2](https://github.com/sidorares/node-mysql2)
+- [PostgreSQL Node.js (pg)](https://node-postgres.com/)
 - [Socket.io](https://socket.io/)
 - [PayPal API](https://developer.paypal.com/)
 
