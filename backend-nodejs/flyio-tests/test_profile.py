@@ -6,7 +6,7 @@ Tests: /api/profile/*
 
 from config import (
     APIClient, TestStats, TestAssertions, test_data,
-    log_section, log_test, log_success, log_error, log_warning,
+    log_section, log_test, log_success, log_error, log_warning, log_info,
     TEST_USERS
 )
 
@@ -164,6 +164,55 @@ def test_profile(client: APIClient, stats: TestStats):
     else:
         log_error(f"Expected status 400, 404, or 500, got {status}")
     stats.add_result(passed)
+
+    # Test 9: Get uploaded profile image from own profile
+    log_test("Get uploaded profile image from own profile")
+    # Get own profile (femme1 should have an uploaded photo)
+    response, status = client.get('/profile/me')
+
+    if status != 200 or not response:
+        log_error("Failed to get own profile")
+        stats.add_result(False)
+    else:
+        image_url = response.get('profile_photo', '')
+
+        # Check if this user has an uploaded photo (not an external URL)
+        if not image_url or not image_url.startswith('/uploads/'):
+            log_info(f"User doesn't have an uploaded photo (has: {image_url}), skipping image test")
+            stats.add_result(True)  # Skip test gracefully
+        else:
+            log_success(f"Found uploaded image in profile: {image_url}")
+
+            # Try to fetch the image
+            import requests
+            from config import API_URL
+
+            # Extract base URL from API_URL
+            base_url = API_URL.replace('/api', '')
+            full_image_url = f"{base_url}{image_url}"
+
+            try:
+                # Note: Uploaded images don't need Authorization header
+                img_response = requests.get(full_image_url, timeout=10)
+                passed = img_response.status_code == 200
+
+                if passed:
+                    # Check content type
+                    content_type = img_response.headers.get('Content-Type', '')
+                    if content_type.startswith('image/'):
+                        log_success(f"Image retrieved successfully: {content_type}, {len(img_response.content)} bytes ✓")
+                        passed = True
+                    else:
+                        log_error(f"Expected image content-type, got {content_type}")
+                        passed = False
+                else:
+                    log_error(f"Image request failed with status {img_response.status_code}")
+                    passed = False
+            except Exception as e:
+                log_error(f"Failed to fetch image: {str(e)}")
+                passed = False
+
+            stats.add_result(passed)
 
 
 if __name__ == '__main__':
