@@ -26,16 +26,39 @@ DB_PORT=5432       # 3306 for MySQL
 **Full Reset (Recommended):**
 ```bash
 cd backend-nodejs/database
-./full-reset.sh
+./full-reset.sh              # Full import with cities (1-2 minutes)
+./full-reset.sh --skip-cities # Fast mode for testing (30 seconds)
 ```
 
 The script automatically detects `DB_TYPE` from `.env` and:
 1. Drops and recreates the database
 2. Creates all tables (users, profiles, matches, messages, interests, locations)
 3. Seeds interest categories and translations (en, fr, es, pt)
-4. Imports worldwide location data from GeoNames (~225k cities with population > 500)
+4. Imports worldwide location data from GeoNames (~225k cities with population > 500) - skipped with --skip-cities
 5. Creates test accounts (400 users) with random interests
-6. Total time: ~1-2 minutes
+6. Total time: ~1-2 minutes (or 30 seconds with --skip-cities)
+
+**Cloud Database Reset (Fly.io, Render, etc.):**
+
+For cloud PostgreSQL databases, use DATABASE_URL with a local proxy for much faster imports:
+
+```bash
+# Terminal 1: Create proxy to cloud database
+flyctl proxy 5432:5432 -a curvy-backend-db
+
+# Terminal 2: Run reset script with DATABASE_URL pointing to localhost
+export DATABASE_URL="postgres://username:password@localhost:5432/dbname?sslmode=disable"
+export DB_TYPE=postgres
+cd backend-nodejs/database
+./full-reset.sh              # Full import: 2-3 minutes (vs 15-30 via SSH)
+./full-reset.sh --skip-cities # Fast mode: 30 seconds
+```
+
+**Why proxy is faster:**
+- The `.flycast` domain (Fly.io internal network) is not accessible from local machine
+- Running the script via SSH is very slow for city imports (15-30 minutes)
+- Using `flyctl proxy` creates a local tunnel with much better performance (2-3 minutes)
+- The script automatically detects DATABASE_URL and uses cloud mode
 
 **Manual Setup (PostgreSQL):**
 ```bash
@@ -236,3 +259,24 @@ Frontend tests use Jasmine and Karma. Tests run in Chrome by default.
 - `cities` - Cities (225k entries, population > 500)
 
 See `backend-nodejs/database/README.md` for detailed schema documentation.
+
+## Deployment
+
+The application is configured for deployment on **Fly.io** (backend + PostgreSQL) and **Vercel** (frontend).
+
+**Configuration files:**
+- `backend-nodejs/fly.toml` - Fly.io app configuration
+- `backend-nodejs/Dockerfile` - Docker container for backend
+- `frontend-angular/src/app/config/environment.ts` - Frontend environment URLs
+
+**Key features:**
+- App name: `curvy-backend` (Fly.io)
+- Frontend: `curvy.vercel.app`
+- Persistent volume for uploads (10GB)
+- Health checks configured
+- DATABASE_URL support for cloud PostgreSQL
+- Dual mode: local development + cloud production
+
+**Important:** When initializing a Fly.io database, use the proxy method documented above for much faster imports (2-3 minutes vs 15-30 minutes via SSH).
+
+See `DEPLOYMENT-FLYIO-VERCEL.md` for complete deployment guide with step-by-step instructions.

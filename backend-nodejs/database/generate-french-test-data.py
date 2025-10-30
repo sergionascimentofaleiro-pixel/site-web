@@ -32,9 +32,11 @@ def load_env():
                         key, value = line.split('=', 1)
                         env_vars[key.strip()] = value.strip()
 
-    # Set environment variables
+    # Set environment variables (strip quotes and force override)
     for key, value in env_vars.items():
-        os.environ.setdefault(key, value)
+        # Remove surrounding quotes if present
+        value = value.strip('"').strip("'")
+        os.environ[key] = value
 
     return env_vars
 
@@ -52,7 +54,13 @@ else:
     import mysql.connector
 
 # Database connection configuration
-if DB_TYPE == 'postgres':
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+if DATABASE_URL:
+    # Using DATABASE_URL (cloud mode - Fly.io, Render, etc.)
+    print("ℹ️  Using DATABASE_URL for database connection (cloud mode)")
+    db_config = None  # Will use DATABASE_URL directly
+elif DB_TYPE == 'postgres':
     db_config = {
         'host': 'localhost',
         'user': os.getenv('DB_USER', 'postgres'),
@@ -203,10 +211,54 @@ def get_file_hash(file_path):
             hash_md5.update(chunk)
     return hash_md5.hexdigest()
 
-def copy_local_photos_for_gender(gender='female'):
-    """Copy local photos to uploads directory and return list of copied filenames
+def upload_photos_to_flyio(local_files, gender='female'):
+    """Upload photos to Fly.io volume using flyctl sftp"""
+    import subprocess
 
-    DEDUPLICATION: Detects and removes duplicate photos before copying
+    flyio_app = os.getenv('FLYIO_APP_NAME', 'curvy-backend')
+    prefix = "woman_" if gender == 'female' else "man_"
+
+    print(f"   📤 Uploading {len(local_files)} photos to Fly.io ({flyio_app})...")
+
+    uploaded_files = []
+
+    # Create temporary batch file for sftp commands
+    with open('/tmp/flyio_upload_batch.txt', 'w') as batch_file:
+        batch_file.write("cd /app/uploads/profiles\n")
+
+        for idx, local_file in enumerate(local_files):
+            ext = local_file.suffix
+            dest_filename = f"{prefix}{idx+1}{ext}"
+            batch_file.write(f"put {local_file} {dest_filename}\n")
+            uploaded_files.append(dest_filename)
+
+    # Execute sftp upload via flyctl
+    try:
+        result = subprocess.run(
+            ['flyctl', 'sftp', 'shell', '-a', flyio_app],
+            stdin=open('/tmp/flyio_upload_batch.txt', 'r'),
+            capture_output=True,
+            text=True,
+            timeout=300  # 5 minutes timeout
+        )
+
+        if result.returncode == 0:
+            print(f"   ✅ Successfully uploaded {len(uploaded_files)} photos to Fly.io")
+        else:
+            print(f"   ⚠️  Upload failed: {result.stderr}")
+            return []
+    except Exception as e:
+        print(f"   ⚠️  Error uploading to Fly.io: {e}")
+        return []
+
+    return uploaded_files
+
+def copy_local_photos_for_gender(gender='female'):
+    """Copy local photos to uploads directory OR upload to Fly.io if in remote mode
+
+    DEDUPLICATION: Detects and removes duplicate photos before copying/uploading
+    REMOTE MODE: If DATABASE_URL is set, uploads to Fly.io instead of local copy
+
     Handles variable number of photos (0 to 200+):
     - If 0 photos: returns empty list, all profiles will use other sources
     - If 1-200 unique photos: uses local photos + other sources to fill 200 profiles
@@ -221,12 +273,14 @@ def copy_local_photos_for_gender(gender='female'):
         source_dir_str = os.getenv('PHOTOS_SOURCE_DIR_MEN', '/media/nascimento/data/photos-site-hommes')
     source_dir = Path(source_dir_str)
 
-    # Get destination directory (always relative to backend-nodejs)
-    script_dir = Path(__file__).parent
-    dest_dir = script_dir.parent / 'uploads' / 'profiles'
+    # Determine if we're in remote mode (Fly.io)
+    is_remote_mode = DATABASE_URL is not None
 
-    # Create destination directory if it doesn't exist
-    dest_dir.mkdir(parents=True, exist_ok=True)
+    if not is_remote_mode:
+        # LOCAL MODE: Copy to local uploads directory
+        script_dir = Path(__file__).parent
+        dest_dir = script_dir.parent / 'uploads' / 'profiles'
+        dest_dir.mkdir(parents=True, exist_ok=True)
 
     # Check if source directory exists
     if not source_dir.exists():
@@ -269,10 +323,15 @@ def copy_local_photos_for_gender(gender='female'):
 
     print(f"   Using {len(unique_files)} unique photos")
 
-    # Limit to 200 photos max (we only have 200 women profiles)
+    # Limit to 200 photos max (we only have 200 women/men profiles)
     max_photos = min(len(unique_files), 200)
     unique_files = unique_files[:max_photos]
 
+    # REMOTE MODE: Upload to Fly.io
+    if is_remote_mode:
+        return upload_photos_to_flyio(unique_files, gender)
+
+    # LOCAL MODE: Copy to local directory
     copied_files = []
     prefix = "woman_" if gender == 'female' else "man_"
     for idx, img_file in enumerate(unique_files):
@@ -346,8 +405,11 @@ def generate_profile_photo(gender, index, local_photos_women=None, local_photos_
                 # For 100-199, use 'thumb' subdirectory which has different photos
                 return f"https://randomuser.me/api/portraits/thumb/men/{photo_id}.jpg"
 
-def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
-    """Create 200 men and 200 women test accounts"""
+def create_test_users(conn, cursor, local_photos_women=None, local_photos_men=None):
+    """Create 200 men and 200 women test accounts
+
+    OPTIMIZATION: Commits every 50 users for better performance with remote databases
+    """
     print("Creating test users...")
     print("  Women distribution: 50 in Paris, 15 in Orléans, 135 random")
     print("  Men distribution: 200 random French cities")
@@ -356,14 +418,26 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
     if local_photos_men:
         print(f"  Using {len(local_photos_men)} local photos for men")
 
-    # Get France country ID
+    # Check if geographic data is available
     cursor.execute("SELECT id FROM countries WHERE code = 'FR'")
-    france_id = cursor.fetchone()[0]
+    france_result = cursor.fetchone()
+
+    if not france_result:
+        print("\n⚠️  WARNING: No geographic data found (countries table is empty)")
+        print("   This happens when using --skip-cities flag")
+        print("   Profiles will be created WITHOUT location data (country_id and city_id will be NULL)")
+        print("   Run without --skip-cities to import full geographic data\n")
+        france_id = None
+        orleans_id = None
+        paris_id = None
+    else:
+        france_id = france_result[0]
+        # Get city ID for Orleans
+        orleans_id = get_city_id(cursor, 'Orleans')
+        # Get city ID for Paris (do it early to avoid duplicate query)
+        paris_id = get_city_id(cursor, 'Paris')
 
     users_created = 0
-
-    # Get city ID for Orleans
-    orleans_id = get_city_id(cursor, 'Orleans')
 
     # Create 200 men
     # First 20 in Orléans, remaining 180 random
@@ -379,8 +453,10 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
             VALUES (%s, %s, 'fr', TRUE)
         """, (email, password))
 
-        # Assign city: First 20 in Orléans, rest random
-        if i < 20 and orleans_id:
+        # Assign city: First 20 in Orléans, rest random (if data available)
+        if france_id is None:
+            city_id = None  # No geographic data available
+        elif i < 20 and orleans_id:
             city_id = orleans_id
         else:
             city_id = get_random_french_city(cursor)
@@ -408,10 +484,8 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
 
         users_created += 1
         if users_created % 50 == 0:
+            conn.commit()  # Commit every 50 users for better performance with remote DB
             print(f"  Created {users_created} users...")
-
-    # Get city ID for Paris
-    paris_id = get_city_id(cursor, 'Paris')
 
     # Create 200 women
     # First 50 in Paris, next 15 in Orléans, remaining 135 random
@@ -427,8 +501,10 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
             VALUES (%s, %s, 'fr', TRUE)
         """, (email, password))
 
-        # Assign city: 50 in Paris, 15 in Orléans, rest random
-        if i < 50 and paris_id:
+        # Assign city: 50 in Paris, 15 in Orléans, rest random (if data available)
+        if france_id is None:
+            city_id = None  # No geographic data available
+        elif i < 50 and paris_id:
             city_id = paris_id
         elif i < 65 and orleans_id:
             city_id = orleans_id
@@ -458,9 +534,39 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
 
         users_created += 1
         if users_created % 50 == 0:
+            conn.commit()  # Commit every 50 users for better performance with remote DB
             print(f"  Created {users_created} users...")
 
     print(f"✓ Successfully created {users_created} test users (200 men + 200 women)")
+
+def clean_flyio_uploads():
+    """Clean old test photos from Fly.io uploads directory"""
+    import subprocess
+
+    flyio_app = os.getenv('FLYIO_APP_NAME', 'curvy-backend')
+    print(f"🧹 Cleaning old test photos from Fly.io ({flyio_app})...")
+
+    try:
+        # Create batch file for cleanup
+        with open('/tmp/flyio_cleanup_batch.txt', 'w') as batch_file:
+            batch_file.write("cd /app/uploads/profiles\n")
+            batch_file.write("rm -f woman_*.*\n")
+            batch_file.write("rm -f man_*.*\n")
+            batch_file.write("ls -la\n")
+
+        result = subprocess.run(
+            ['flyctl', 'ssh', 'console', '-a', flyio_app, '-C', 'cd /app/uploads/profiles && rm -f woman_*.* man_*.*'],
+            capture_output=True,
+            text=True,
+            timeout=60
+        )
+
+        if result.returncode == 0:
+            print("✅ Cleaned old test photos from Fly.io")
+        else:
+            print(f"⚠️  Cleanup warning: {result.stderr}")
+    except Exception as e:
+        print(f"⚠️  Error cleaning Fly.io uploads: {e}")
 
 def main():
     print("=== Generating French Test Data ===")
@@ -474,8 +580,34 @@ def main():
         source_dir_women = os.getenv('PHOTOS_SOURCE_DIR_WOMEN', '/media/nascimento/data/photos-site')
         source_dir_men = os.getenv('PHOTOS_SOURCE_DIR_MEN', '/media/nascimento/data/photos-site-hommes')
 
-        # Copy local photos for women
-        print(f"Copying local photos for women from {source_dir_women}...")
+        # Clean uploads directory (local or remote)
+        if DATABASE_URL:
+            # Remote mode: Clean Fly.io uploads via SSH
+            clean_flyio_uploads()
+            print()
+        else:
+            # Local mode: Clean local uploads directory
+            script_dir = Path(__file__).parent
+            uploads_dir = script_dir.parent / 'uploads' / 'profiles'
+
+            print("🧹 Cleaning old uploaded photos...")
+            if uploads_dir.exists():
+                # Remove test profile photos (keep user uploaded photos like user_401_*.*)
+                import glob
+                for pattern in ['woman_*.*', 'man_*.*']:
+                    for file in glob.glob(str(uploads_dir / pattern)):
+                        try:
+                            os.remove(file)
+                        except Exception as e:
+                            print(f"   ⚠️  Error removing {file}: {e}")
+                print(f"✅ Removed old test photos (woman_*.* and man_*.*) from {uploads_dir}")
+            else:
+                print(f"ℹ️  Uploads directory doesn't exist yet, will be created")
+            print()
+
+        # Copy local photos for women (or upload to Fly.io)
+        mode_text = "Uploading" if DATABASE_URL else "Copying local"
+        print(f"{mode_text} photos for women from {source_dir_women}...")
         local_photos_women = copy_local_photos_for_gender('female')
 
         if len(local_photos_women) > 0:
@@ -483,8 +615,8 @@ def main():
         else:
             print(f"⚠️  No local photos found for women - profiles will use randomuser.me\n")
 
-        # Copy local photos for men
-        print(f"Copying local photos for men from {source_dir_men}...")
+        # Copy local photos for men (or upload to Fly.io)
+        print(f"{mode_text} photos for men from {source_dir_men}...")
         local_photos_men = copy_local_photos_for_gender('male')
 
         if len(local_photos_men) > 0:
@@ -494,10 +626,21 @@ def main():
 
         # Connect to database
         if DB_TYPE == 'postgres':
-            conn = psycopg2.connect(**db_config)
+            if DATABASE_URL:
+                # Use DATABASE_URL for cloud connections
+                conn = psycopg2.connect(DATABASE_URL)
+            else:
+                conn = psycopg2.connect(**db_config)
         else:
             conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
+
+        # Optimize PostgreSQL for bulk inserts
+        if DB_TYPE == 'postgres':
+            print("⚡ Optimizing PostgreSQL for bulk inserts...")
+            cursor.execute("SET synchronous_commit = OFF")  # Faster commits
+            cursor.execute("SET work_mem = '256MB'")  # More memory for operations
+            print("✓ PostgreSQL optimizations applied\n")
 
         # Clear existing test data
         print("Clearing existing test data...")
@@ -510,10 +653,15 @@ def main():
         print("✓ Cleared existing test data\n")
 
         # Create test users
-        create_test_users(cursor, local_photos_women, local_photos_men)
+        create_test_users(conn, cursor, local_photos_women, local_photos_men)
 
-        # Commit changes
+        # Final commit
         conn.commit()
+
+        # Reset PostgreSQL settings
+        if DB_TYPE == 'postgres':
+            cursor.execute("RESET synchronous_commit")
+            cursor.execute("RESET work_mem")
 
         print("\n=== Test Data Generation Complete ===")
         print("✓ NO DUPLICATE PHOTOS - All profiles have unique photos!")

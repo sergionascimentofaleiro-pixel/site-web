@@ -3,6 +3,7 @@ import sys
 import os
 
 DB_TYPE = os.environ.get('DB_TYPE', 'mysql')
+DATABASE_URL = os.environ.get('DATABASE_URL')
 DB_NAME = "dating_app"
 DB_USER = "postgres"
 DB_PASS = "postgres"
@@ -15,12 +16,18 @@ if DB_TYPE == 'postgres':
     import psycopg2.extras
 
     def connect_db():
-        return psycopg2.connect(
-            host="localhost",
-            user=DB_USER,
-            password=DB_PASS,
-            database=DB_NAME
-        )
+        # Use DATABASE_URL if available (cloud/proxy mode)
+        if DATABASE_URL:
+            print("   [PostgreSQL] Connecting with DATABASE_URL")
+            return psycopg2.connect(DATABASE_URL)
+        else:
+            print(f"   [PostgreSQL] Connecting to localhost as {DB_USER}")
+            return psycopg2.connect(
+                host="localhost",
+                user=DB_USER,
+                password=DB_PASS,
+                database=DB_NAME
+            )
 
     def clear_tables(cursor):
         cursor.execute("TRUNCATE TABLE cities CASCADE")
@@ -54,6 +61,13 @@ else:
 print("   📊 Importing countries...")
 conn = connect_db()
 cursor = conn.cursor()
+
+# Optimize PostgreSQL for bulk inserts
+if DB_TYPE == 'postgres':
+    print("   ⚡ Applying PostgreSQL optimizations for bulk inserts...")
+    cursor.execute("SET synchronous_commit = OFF")
+    cursor.execute("SET work_mem = '256MB'")
+    cursor.execute("SET maintenance_work_mem = '512MB'")
 
 # Clear tables
 clear_tables(cursor)
@@ -112,7 +126,8 @@ print(f"   ✅ {len(state_map)} states imported")
 print("   📊 Importing cities (this may take 2-3 minutes)...")
 cities_batch = []
 city_count = 0
-batch_size = 1000
+# Larger batch size for remote databases (DATABASE_URL mode)
+batch_size = 5000 if DATABASE_URL else 1000
 
 with open('cities500.txt', 'r', encoding='utf-8') as f:
     reader = csv.reader(f, delimiter='\t')
@@ -147,7 +162,9 @@ with open('cities500.txt', 'r', encoding='utf-8') as f:
             )
             conn.commit()
             city_count += len(cities_batch)
-            print(f"   ... {city_count} cities imported", end='\r')
+            # Show progress every 10k cities to reduce console I/O
+            if city_count % 10000 == 0 or city_count < 10000:
+                print(f"   ... {city_count} cities imported", end='\r')
             cities_batch = []
 
 # Insert remaining cities
@@ -160,6 +177,12 @@ if cities_batch:
     city_count += len(cities_batch)
 
 print(f"   ✅ {city_count} cities imported          ")
+
+# Reset PostgreSQL settings
+if DB_TYPE == 'postgres':
+    cursor.execute("RESET synchronous_commit")
+    cursor.execute("RESET work_mem")
+    cursor.execute("RESET maintenance_work_mem")
 
 cursor.close()
 conn.close()
