@@ -3,12 +3,12 @@ const db = require('../config/database');
 class Profile {
   static async create(profileData) {
     const { userId, firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, countryId, stateId, cityId, interests, profilePhoto } = profileData;
-    const [result] = await db.execute(
+    const result = await db.execute(
       `INSERT INTO profiles (user_id, first_name, last_name, phone, birth_date, gender, looking_for, bio, location, country_id, state_id, city_id, interests, profile_photo)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [userId, firstName, lastName, phone, birthDate, gender, lookingFor, bio, location, countryId, stateId, cityId, interests, profilePhoto]
     );
-    return result.insertId;
+    return result[0].insertId;
   }
 
   static async findByUserId(userId) {

@@ -161,20 +161,20 @@ cd backend-nodejs/database
 cd /workspace/site-web/backend-nodejs
 
 # Vérifier le statut de l'application
-fly status -a curvy-backend
+flyctl status -a curvy-backend
 
 # Tester le health endpoint
 curl https://curvy-backend.fly.dev/api/health
 # Résultat attendu : {"status":"OK","message":"Dating app backend is running"}
 
 # Ouvrir le health endpoint dans le navigateur
-fly apps open -a curvy-backend
+flyctl apps open -a curvy-backend
 # Puis ajouter /api/health à l'URL dans le navigateur
 # OU directement :
 xdg-open https://curvy-backend.fly.dev/api/health
 
 # Vérifier les logs
-fly logs -a curvy-backend
+flyctl logs -a curvy-backend
 ```
 
 ---
@@ -355,10 +355,10 @@ flyctl apps restart -a curvy-backend
 cd /workspace/site-web/backend-nodejs
 
 # Déployer la nouvelle version
-fly deploy -a curvy-backend
+flyctl deploy -a curvy-backend
 
 # OU si fly.toml contient déjà app = 'curvy-backend'
-fly deploy
+flyctl deploy
 
 # Cette commande va :
 # - Construire une nouvelle image Docker
@@ -371,10 +371,10 @@ fly deploy
 
 ```bash
 # Option 1 : Mettre en pause les machines (recommandé, gratuit)
-fly scale count 0 -a curvy-backend
+flyctl scale count 0 -a curvy-backend
 
 # Option 2 : Arrêter complètement l'app
-fly apps stop -a curvy-backend
+flyctl apps stop -a curvy-backend
 
 # Les deux options arrêtent l'application sans perdre les données
 # La base PostgreSQL et le volume uploads restent intacts
@@ -384,39 +384,39 @@ fly apps stop -a curvy-backend
 
 ```bash
 # Option 1 : Redémarrer l'app (si elle tourne déjà)
-fly apps restart -a curvy-backend
+flyctl apps restart -a curvy-backend
 
 # Option 2 : Remettre les machines en service (si scale count 0)
-fly scale count 1 -a curvy-backend
+flyctl scale count 1 -a curvy-backend
 
 # Option 3 : Forcer le redémarrage d'une machine spécifique
-fly machine restart <machine-id> -a curvy-backend
+flyctl machine restart <machine-id> -a curvy-backend
 ```
 
 ### Vérifier l'état de l'application
 
 ```bash
 # Voir le statut global
-fly status -a curvy-backend
+flyctl status -a curvy-backend
 
 # Voir les machines en cours d'exécution
-fly machine list -a curvy-backend
+flyctl machine list -a curvy-backend
 
 # Voir les informations détaillées sur l'app
-fly info -a curvy-backend
+flyctl info -a curvy-backend
 
 # Ouvrir l'app dans le navigateur
-fly apps open -a curvy-backend
+flyctl apps open -a curvy-backend
 ```
 
 ### Gestion de la base de données PostgreSQL
 
 ```bash
 # Voir l'état de la base de données
-fly postgres db list -a curvy-backend-db
+flyctl postgres db list -a curvy-backend-db
 
 # Se connecter à la console PostgreSQL
-fly postgres connect -a curvy-backend-db
+flyctl postgres connect -a curvy-backend-db
 
 # Dans la console psql, vous pouvez exécuter :
 # \l                    -- Lister les bases
@@ -425,32 +425,32 @@ fly postgres connect -a curvy-backend-db
 # SELECT COUNT(*) FROM users;
 
 # Voir les métriques de la base
-fly postgres metrics -a curvy-backend-db
+flyctl postgres metrics -a curvy-backend-db
 
 # Voir les logs de PostgreSQL
-fly logs -a curvy-backend-db
+flyctl logs -a curvy-backend-db
 
 # Redémarrer la base de données (attention !)
-fly apps restart -a curvy-backend-db
+flyctl apps restart -a curvy-backend-db
 ```
 
 ### Gestion du volume persistent (uploads)
 
 ```bash
 # Voir les volumes
-fly volumes list -a curvy-backend
+flyctl volumes list -a curvy-backend
 
 # Voir l'espace utilisé
-fly ssh console -a curvy-backend -C "df -h /app/uploads"
+flyctl ssh console -a curvy-backend -C "df -h /app/uploads"
 
 # Explorer le contenu du volume
-fly ssh console -a curvy-backend -C "ls -lh /app/uploads/profiles"
+flyctl ssh console -a curvy-backend -C "ls -lh /app/uploads/profiles"
 
 # Compter les fichiers dans le volume
-fly ssh console -a curvy-backend -C "find /app/uploads -type f | wc -l"
+flyctl ssh console -a curvy-backend -C "find /app/uploads -type f | wc -l"
 
 # Accéder au volume via SFTP (pour upload/download manuel)
-fly sftp shell -a curvy-backend
+flyctl sftp shell -a curvy-backend
 # Dans la console SFTP :
 # cd /app/uploads/profiles
 # ls
@@ -462,19 +462,19 @@ fly sftp shell -a curvy-backend
 
 ```bash
 # Voir la liste des secrets configurés (les valeurs sont cachées)
-fly secrets list -a curvy-backend
+flyctl secrets list -a curvy-backend
 
 # Ajouter ou modifier un secret
-fly secrets set NEW_SECRET=value -a curvy-backend
+flyctl secrets set NEW_SECRET=value -a curvy-backend
 
 # Modifier plusieurs secrets à la fois
-fly secrets set \
+flyctl secrets set \
   JWT_SECRET=new_secret \
   IMAGE_SIGNATURE_SECRET=new_image_secret \
   -a curvy-backend
 
 # Supprimer un secret
-fly secrets unset SECRET_NAME -a curvy-backend
+flyctl secrets unset SECRET_NAME -a curvy-backend
 
 # ⚠️ Attention : Modifier un secret redémarre automatiquement l'app
 ```
@@ -483,13 +483,13 @@ fly secrets unset SECRET_NAME -a curvy-backend
 
 ```bash
 # Changer le nombre de machines (instances)
-fly scale count 2 -a curvy-backend  # 2 instances pour haute disponibilité
+flyctl scale count 2 -a curvy-backend  # 2 instances pour haute disponibilité
 
 # Changer la taille de la mémoire
-fly scale memory 1024 -a curvy-backend  # 1 GB RAM
+flyctl scale memory 1024 -a curvy-backend  # 1 GB RAM
 
 # Voir la configuration actuelle
-fly scale show -a curvy-backend
+flyctl scale show -a curvy-backend
 
 # Note : Le plan gratuit limite à 3 VMs partagées et 512 MB RAM
 ```
@@ -498,26 +498,26 @@ fly scale show -a curvy-backend
 
 ```bash
 # Voir les checks de santé
-fly checks list -a curvy-backend
+flyctl checks list -a curvy-backend
 
 # Voir l'historique des déploiements
-fly releases -a curvy-backend
+flyctl releases -a curvy-backend
 
 # Revenir à une version précédente
-fly releases rollback <version> -a curvy-backend
+flyctl releases rollback <version> -a curvy-backend
 
 # Voir la configuration actuelle
-fly config show -a curvy-backend
+flyctl config show -a curvy-backend
 
 # Valider le fichier fly.toml
-fly config validate
+flyctl config validate
 ```
 
 ### Accès SSH et debugging
 
 ```bash
 # Se connecter en SSH interactif
-fly ssh console -a curvy-backend
+flyctl ssh console -a curvy-backend
 
 # Une fois connecté, vous pouvez :
 # cd /app                   # Aller dans le dossier de l'app
@@ -528,25 +528,25 @@ fly ssh console -a curvy-backend
 # exit                      # Sortir
 
 # Exécuter une commande unique via SSH (sans session interactive)
-fly ssh console -a curvy-backend -C "node --version"
-fly ssh console -a curvy-backend -C "ls -lh /app/uploads"
-fly ssh console -a curvy-backend -C "cat /app/package.json"
+flyctl ssh console -a curvy-backend -C "node --version"
+flyctl ssh console -a curvy-backend -C "ls -lh /app/uploads"
+flyctl ssh console -a curvy-backend -C "cat /app/package.json"
 
 # Voir les processus en cours
-fly ssh console -a curvy-backend -C "ps aux"
+flyctl ssh console -a curvy-backend -C "ps aux"
 ```
 
 ### Monitoring et alertes
 
 ```bash
 # Voir les métriques en temps réel
-fly dashboard -a curvy-backend
+flyctl dashboard -a curvy-backend
 
 # Voir l'utilisation des ressources
-fly machine status -a curvy-backend
+flyctl machine status -a curvy-backend
 
 # Voir le trafic réseau
-fly wireguard list
+flyctl wireguard list
 ```
 
 ---

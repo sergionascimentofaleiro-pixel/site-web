@@ -2,7 +2,7 @@ const db = require('../config/database');
 
 class Like {
   static async create(fromUserId, toUserId, likeType) {
-    const [result] = await db.execute(
+    const result = await db.execute(
       'INSERT INTO likes (from_user_id, to_user_id, like_type) VALUES (?, ?, ?)',
       [fromUserId, toUserId, likeType]
     );
@@ -17,11 +17,11 @@ class Like {
       if (existingLike.length > 0) {
         // Create a match
         await this.createMatch(fromUserId, toUserId);
-        return { insertId: result.insertId, isMatch: true };
+        return { insertId: result[0].insertId, isMatch: true };
       }
     }
 
-    return { insertId: result.insertId, isMatch: false };
+    return { insertId: result[0].insertId, isMatch: false };
   }
 
   static async createMatch(user1Id, user2Id) {

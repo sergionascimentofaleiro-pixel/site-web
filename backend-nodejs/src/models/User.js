@@ -4,17 +4,19 @@ const bcrypt = require('bcryptjs');
 class User {
   static async create(email, password) {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const [result] = await db.execute(
-      'INSERT INTO users (email, password_hash, is_active) VALUES (?, ?, 0)',
-      [email, hashedPassword]
+    const result = await db.execute(
+      'INSERT INTO users (email, password_hash, is_active) VALUES (?, ?, ?)',
+      [email, hashedPassword, false]
     );
-    return result.insertId;
+    // For postgres: result = [{insertId, affectedRows}, undefined]
+    // For mysql: result = [{insertId, affectedRows}, undefined]
+    return result[0].insertId;
   }
 
   static async activate(id) {
     await db.execute(
-      'UPDATE users SET is_active = 1 WHERE id = ?',
-      [id]
+      'UPDATE users SET is_active = ? WHERE id = ?',
+      [true, id]
     );
   }
 

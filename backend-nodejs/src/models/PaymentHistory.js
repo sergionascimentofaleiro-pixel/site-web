@@ -12,14 +12,14 @@ class PaymentHistory {
       status
     } = data;
 
-    const [result] = await db.execute(
+    const result = await db.execute(
       `INSERT INTO payment_history
        (user_id, amount, currency, payment_method, paypal_order_id, subscription_type, status, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
       [user_id, amount, currency, payment_method, paypal_order_id, subscription_type, status]
     );
 
-    return result.insertId;
+    return result[0].insertId;
   }
 
   static async findByPayPalOrderId(orderId) {

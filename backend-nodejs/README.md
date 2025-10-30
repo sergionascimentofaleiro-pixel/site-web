@@ -367,10 +367,53 @@ Tâche quotidienne à 00:00:
 
 ## 🧪 Tests
 
-Comptes de test après `./full-reset.sh`:
+### Comptes de test
+
+Après `./full-reset.sh`:
 - `homme1@test.fr` à `homme200@test.fr`
 - `femme1@test.fr` à `femme200@test.fr`
 - Mot de passe: `password123`
+
+### Suite de tests automatisés
+
+Une suite complète de tests Python est disponible dans `flyio-tests/` pour tester toutes les APIs :
+
+```bash
+# Installer les dépendances
+cd flyio-tests
+pip3 install -r requirements.txt
+
+# Tester le backend local
+python3 run_all_tests.py
+
+# Tester le backend sur Fly.io
+BACKEND_URL=https://curvy-backend.fly.dev python3 run_all_tests.py
+
+# OU utiliser le script shell
+./test.sh         # Local
+./test.sh flyio   # Fly.io
+```
+
+**Tests couverts** (55 tests au total) :
+- ✅ **Authentication** (10 tests) - Register, login, get user, update preferences
+- ✅ **Profile** (8 tests) - CRUD, discover, swipe right/left
+- ✅ **Matches** (7 tests) - List, create match, unmatch
+- ✅ **Messages** (10 tests) - Send, read, conversations, unread count
+- ✅ **Interests** (9 tests) - Get categories, translations, user interests
+- ✅ **Locations** (11 tests) - Countries, states, cities, search
+
+**Nettoyage après tests** :
+```bash
+# Supprimer uniquement les données créées pendant les tests
+python3 cleanup.py
+
+# OU
+./test.sh cleanup
+```
+
+Le script de nettoyage supprime les données de test mais **préserve les 400 utilisateurs** de `full-reset.sh`.
+
+Voir `flyio-tests/README.md` pour plus de détails.
 
 ## 📦 Dépendances principales
 

@@ -2,12 +2,12 @@ const db = require('../config/database');
 
 class Subscription {
   static async create(userId, subscriptionType, amount, endDate, stripePaymentIntentId = null, stripeSubscriptionId = null) {
-    const [result] = await db.execute(
+    const result = await db.execute(
       `INSERT INTO subscriptions (user_id, subscription_type, amount, end_date, stripe_payment_intent_id, stripe_subscription_id)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [userId, subscriptionType, amount, endDate, stripePaymentIntentId, stripeSubscriptionId]
     );
-    return result.insertId;
+    return result[0].insertId;
   }
 
   static async getActiveSubscription(userId) {

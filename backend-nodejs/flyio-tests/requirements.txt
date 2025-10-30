@@ -1,0 +1,13 @@
+# Python dependencies for Fly.io backend API tests
+
+# HTTP requests
+requests>=2.28.0
+
+# Colored terminal output
+colorama>=0.4.6
+
+# PostgreSQL database driver
+psycopg2-binary>=2.9.0
+
+# MySQL database driver (alternative)
+mysql-connector-python>=8.0.0

@@ -2,11 +2,11 @@ const db = require('../config/database');
 
 class Message {
   static async create(matchId, senderId, receiverId, message) {
-    const [result] = await db.execute(
+    const result = await db.execute(
       'INSERT INTO messages (match_id, sender_id, receiver_id, message) VALUES (?, ?, ?, ?)',
       [matchId, senderId, receiverId, message]
     );
-    return result.insertId;
+    return result[0].insertId;
   }
 
   static async getById(messageId) {

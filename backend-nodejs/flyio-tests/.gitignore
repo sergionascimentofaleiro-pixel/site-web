@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# Test data
+/tmp/flyio_test_data.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

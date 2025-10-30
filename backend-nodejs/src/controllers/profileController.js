@@ -159,7 +159,8 @@ exports.swipe = async (req, res) => {
     });
   } catch (error) {
     // Handle duplicate entry error gracefully (user already swiped on this profile)
-    if (error.code === 'ER_DUP_ENTRY') {
+    // MySQL: ER_DUP_ENTRY, PostgreSQL: 23505 (unique_violation)
+    if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
       console.log(`User ${userId} already swiped on user ${targetUserId}`);
       return res.json({
         message: 'Already swiped on this profile',
