@@ -75,6 +75,13 @@ function verifyImageToken(token, imagePath, userId) {
 function generateSignedImageUrl(imagePath, userId) {
   if (!imagePath) return null;
 
+  // If it's an external URL (http:// or https://), return as-is
+  // External images don't need watermarking or token protection
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+
+  // For local images (/uploads/...), generate signed URL
   const { token } = generateImageToken(imagePath, userId);
 
   // Return URL in format: /api/images/secure?path=/uploads/...&token=xxx&userId=xxx

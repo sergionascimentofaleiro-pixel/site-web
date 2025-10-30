@@ -5,9 +5,9 @@ Uses placeholder photos from UI Avatars and randomuser.me
 For women, uses local photos from PHOTOS_SOURCE_DIR (configured in .env)
 Ensures NO duplicate photos across all profiles
 Test profiles: All men seek women, all women seek men (no 'all')
+Supports both MySQL/MariaDB and PostgreSQL
 """
 
-import mysql.connector
 import random
 from datetime import datetime, timedelta
 import os
@@ -41,13 +41,31 @@ def load_env():
 # Load .env variables
 load_env()
 
-# Database connection
-db_config = {
-    'host': 'localhost',
-    'user': 'devuser',
-    'password': 'Manuela2011!',
-    'database': 'dating_app'
-}
+# Detect database type
+DB_TYPE = os.getenv('DB_TYPE', 'mysql')
+
+# Import appropriate database connector
+if DB_TYPE == 'postgres':
+    import psycopg2
+    import psycopg2.extras
+else:
+    import mysql.connector
+
+# Database connection configuration
+if DB_TYPE == 'postgres':
+    db_config = {
+        'host': 'localhost',
+        'user': os.getenv('DB_USER', 'postgres'),
+        'password': os.getenv('DB_PASSWORD', 'postgres'),
+        'database': os.getenv('DB_NAME', 'dating_app')
+    }
+else:
+    db_config = {
+        'host': 'localhost',
+        'user': os.getenv('DB_USER', 'devuser'),
+        'password': os.getenv('DB_PASSWORD', 'Manuela2011!'),
+        'database': os.getenv('DB_NAME', 'dating_app')
+    }
 
 # French first names
 MALE_NAMES = [
@@ -111,6 +129,32 @@ BIOS_FEMALE = [
     "Chanteuse et compositrice. La musique est mon langage."
 ]
 
+# Database helper functions
+def get_random_order():
+    """Return appropriate random order clause based on DB type"""
+    return "ORDER BY RANDOM()" if DB_TYPE == 'postgres' else "ORDER BY RAND()"
+
+def get_lastrowid(cursor):
+    """Get last inserted row ID in a database-agnostic way"""
+    if DB_TYPE == 'postgres':
+        # For PostgreSQL, we use RETURNING id in the query
+        # This function should not be called for PostgreSQL
+        raise NotImplementedError("Use RETURNING id clause for PostgreSQL")
+    else:
+        return cursor.lastrowid
+
+def execute_insert_returning_id(cursor, query, params):
+    """Execute INSERT and return the new row's ID (works for both databases)"""
+    if DB_TYPE == 'postgres':
+        # PostgreSQL: Add RETURNING id to query
+        query_with_returning = query + " RETURNING id"
+        cursor.execute(query_with_returning, params)
+        return cursor.fetchone()[0]
+    else:
+        # MySQL: Use lastrowid
+        cursor.execute(query, params)
+        return cursor.lastrowid
+
 def get_random_date_of_birth(min_age=18, max_age=45):
     """Generate random birth date between min_age and max_age"""
     today = datetime.now()
@@ -135,10 +179,11 @@ def get_city_id(cursor, city_name):
 
 def get_random_french_city(cursor):
     """Get a random French city from the database"""
-    cursor.execute("""
+    random_order = get_random_order()
+    cursor.execute(f"""
         SELECT id FROM cities
         WHERE country_id = (SELECT id FROM countries WHERE code = 'FR')
-        ORDER BY RAND()
+        {random_order}
         LIMIT 1
     """)
     result = cursor.fetchone()
@@ -146,7 +191,8 @@ def get_random_french_city(cursor):
 
 def get_random_interests(cursor, count=5):
     """Get random interest IDs"""
-    cursor.execute("SELECT interest_id FROM interests ORDER BY RAND() LIMIT %s", (count,))
+    random_order = get_random_order()
+    cursor.execute(f"SELECT interest_id FROM interests {random_order} LIMIT %s", (count,))
     return [row[0] for row in cursor.fetchall()]
 
 def get_file_hash(file_path):
@@ -328,11 +374,10 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
         password = '$2b$10$TtgI0Lolao6eeTvo0JEHhOhC263.cdAePcwGaFL3ZjNR1N2BeCEam'  # bcrypt hash of "password123"
 
         # Create user
-        cursor.execute("""
+        user_id = execute_insert_returning_id(cursor, """
             INSERT INTO users (email, password_hash, preferred_language, is_active)
             VALUES (%s, %s, 'fr', TRUE)
         """, (email, password))
-        user_id = cursor.lastrowid
 
         # Assign city: First 20 in Orléans, rest random
         if i < 20 and orleans_id:
@@ -346,14 +391,12 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
         bio = random.choice(BIOS_MALE)
         profile_photo = generate_profile_photo('male', i, local_photos_women, local_photos_men)
 
-        cursor.execute("""
+        profile_id = execute_insert_returning_id(cursor, """
             INSERT INTO profiles (
                 user_id, first_name, last_name, birth_date, gender, looking_for,
                 bio, country_id, city_id, profile_photo
             ) VALUES (%s, %s, %s, %s, 'male', %s, %s, %s, %s, %s)
         """, (user_id, first_name, last_name, birth_date, looking_for, bio, france_id, city_id, profile_photo))
-
-        profile_id = cursor.lastrowid
 
         # Assign random interests
         interests = get_random_interests(cursor, random.randint(3, 8))
@@ -379,11 +422,10 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
         password = '$2b$10$TtgI0Lolao6eeTvo0JEHhOhC263.cdAePcwGaFL3ZjNR1N2BeCEam'  # bcrypt hash of "password123"
 
         # Create user
-        cursor.execute("""
+        user_id = execute_insert_returning_id(cursor, """
             INSERT INTO users (email, password_hash, preferred_language, is_active)
             VALUES (%s, %s, 'fr', TRUE)
         """, (email, password))
-        user_id = cursor.lastrowid
 
         # Assign city: 50 in Paris, 15 in Orléans, rest random
         if i < 50 and paris_id:
@@ -399,14 +441,12 @@ def create_test_users(cursor, local_photos_women=None, local_photos_men=None):
         bio = random.choice(BIOS_FEMALE)
         profile_photo = generate_profile_photo('female', i, local_photos_women, local_photos_men)
 
-        cursor.execute("""
+        profile_id = execute_insert_returning_id(cursor, """
             INSERT INTO profiles (
                 user_id, first_name, last_name, birth_date, gender, looking_for,
                 bio, country_id, city_id, profile_photo
             ) VALUES (%s, %s, %s, %s, 'female', %s, %s, %s, %s, %s)
         """, (user_id, first_name, last_name, birth_date, looking_for, bio, france_id, city_id, profile_photo))
-
-        profile_id = cursor.lastrowid
 
         # Assign random interests
         interests = get_random_interests(cursor, random.randint(3, 8))
@@ -453,7 +493,10 @@ def main():
             print(f"⚠️  No local photos found for men - profiles will use randomuser.me\n")
 
         # Connect to database
-        conn = mysql.connector.connect(**db_config)
+        if DB_TYPE == 'postgres':
+            conn = psycopg2.connect(**db_config)
+        else:
+            conn = mysql.connector.connect(**db_config)
         cursor = conn.cursor()
 
         # Clear existing test data
@@ -518,7 +561,7 @@ def main():
         print(f"  - PHOTOS_SOURCE_DIR_WOMEN: {source_dir_women}")
         print(f"  - PHOTOS_SOURCE_DIR_MEN: {source_dir_men}")
 
-    except mysql.connector.Error as err:
+    except Exception as err:
         print(f"✗ Database error: {err}")
         if conn:
             conn.rollback()

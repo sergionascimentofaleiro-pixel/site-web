@@ -10,7 +10,7 @@ class Like {
     // Check if it's a match (both users liked each other)
     if (likeType === 'like') {
       const [existingLike] = await db.execute(
-        'SELECT * FROM likes WHERE from_user_id = ? AND to_user_id = ? AND like_type = "like"',
+        "SELECT * FROM likes WHERE from_user_id = ? AND to_user_id = ? AND like_type = 'like'",
         [toUserId, fromUserId]
       );
 
@@ -28,10 +28,13 @@ class Like {
     // Ensure user1_id < user2_id for consistency
     const [smallerId, largerId] = user1Id < user2Id ? [user1Id, user2Id] : [user2Id, user1Id];
 
-    await db.execute(
-      'INSERT INTO matches (user1_id, user2_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE is_active = TRUE',
-      [smallerId, largerId]
-    );
+    // Use database-specific upsert syntax
+    const isPostgres = db.dbType === 'postgres';
+    const upsertQuery = isPostgres
+      ? 'INSERT INTO matches (user1_id, user2_id) VALUES (?, ?) ON CONFLICT (user1_id, user2_id) DO UPDATE SET is_active = TRUE'
+      : 'INSERT INTO matches (user1_id, user2_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE is_active = TRUE';
+
+    await db.execute(upsertQuery, [smallerId, largerId]);
   }
 
   static async getLikesBetweenUsers(user1Id, user2Id) {

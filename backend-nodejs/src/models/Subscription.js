@@ -115,10 +115,13 @@ class Subscription {
   }
 
   static async addConversation(userId, matchId) {
-    await db.execute(
-      'INSERT IGNORE INTO user_conversations (user_id, match_id) VALUES (?, ?)',
-      [userId, matchId]
-    );
+    // Use database-specific INSERT syntax to avoid duplicate key errors
+    const isPostgres = db.dbType === 'postgres';
+    const insertQuery = isPostgres
+      ? 'INSERT INTO user_conversations (user_id, match_id) VALUES (?, ?) ON CONFLICT (user_id, match_id) DO NOTHING'
+      : 'INSERT IGNORE INTO user_conversations (user_id, match_id) VALUES (?, ?)';
+
+    await db.execute(insertQuery, [userId, matchId]);
   }
 
   static async hasConversation(userId, matchId) {

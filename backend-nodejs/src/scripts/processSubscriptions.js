@@ -9,21 +9,26 @@ async function processSubscriptions() {
     console.log('Time:', new Date().toISOString());
 
     // 1. Expire subscriptions that have passed their end_date
-    const [expiredResult] = await db.execute(
+    const [expiredResult] = await db.query(
       `UPDATE subscriptions
        SET status = 'expired'
        WHERE status = 'active' AND end_date < NOW()`
     );
-    console.log(`Expired ${expiredResult.affectedRows} subscriptions`);
+    console.log(`Expired ${expiredResult.affectedRows || 0} subscriptions`);
 
     // 2. Find subscriptions to renew (monthly and yearly with will_renew=true, ending in next 24h)
-    const [subscriptionsToRenew] = await db.execute(
+    const isPostgres = db.dbType === 'postgres';
+    const intervalSyntax = isPostgres
+      ? "NOW() + INTERVAL '1 DAY'"
+      : "DATE_ADD(NOW(), INTERVAL 1 DAY)";
+
+    const [subscriptionsToRenew] = await db.query(
       `SELECT *
        FROM subscriptions
        WHERE status = 'active'
          AND will_renew = TRUE
          AND subscription_type IN ('monthly', 'yearly')
-         AND end_date BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 1 DAY)`
+         AND end_date BETWEEN NOW() AND ${intervalSyntax}`
     );
 
     console.log(`Found ${subscriptionsToRenew.length} subscriptions to renew`);
@@ -41,7 +46,7 @@ async function processSubscriptions() {
 
         const newEndDateString = newEndDate.toISOString().slice(0, 19).replace('T', ' ');
 
-        await db.execute(
+        await db.query(
           `UPDATE subscriptions
            SET end_date = ?, start_date = NOW()
            WHERE id = ?`,

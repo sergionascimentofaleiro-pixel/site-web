@@ -18,6 +18,7 @@ import { Subscription } from 'rxjs';
 })
 export class Chat implements OnInit, OnDestroy {
   @ViewChild('messageInput') messageInput!: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('scrollAnchor') scrollAnchor!: ElementRef<HTMLDivElement>;
 
   matchId = signal<number | null>(null);
   match = signal<MatchData | null>(null);
@@ -71,7 +72,7 @@ export class Chat implements OnInit, OnDestroy {
             }
             return [...messages, message];
           });
-          setTimeout(() => this.scrollToBottom(), 100);
+          setTimeout(() => this.scrollToBottom(), 200);
           this.isSending.set(false);
 
           // Mark the new message as read if it's from the other user
@@ -112,6 +113,8 @@ export class Chat implements OnInit, OnDestroy {
         const matchId = parseInt(params['matchId']);
         if (matchId) {
           this.matchId.set(matchId);
+          // Join the WebSocket room for this conversation
+          this.socketService.joinConversation(matchId);
           this.checkConversationAccess(matchId);
         }
       })
@@ -208,7 +211,7 @@ export class Chat implements OnInit, OnDestroy {
         this.isLoading.set(false);
 
         // Scroll to bottom after messages load
-        setTimeout(() => this.scrollToBottom(), 100);
+        setTimeout(() => this.scrollToBottom(), 200);
       },
       error: (error) => {
         console.error('Error loading messages:', error);
@@ -309,9 +312,14 @@ export class Chat implements OnInit, OnDestroy {
   }
 
   private scrollToBottom(): void {
-    const messagesContainer = document.querySelector('.messages-list');
-    if (messagesContainer) {
-      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    try {
+      // Scroll to the invisible anchor element at the very bottom
+      if (this.scrollAnchor && this.scrollAnchor.nativeElement) {
+        this.scrollAnchor.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      }
+    } catch (error) {
+      // Ignore scroll errors
+      console.debug('Scroll error:', error);
     }
   }
 

@@ -63,6 +63,15 @@ class Profile {
     );
     const myCoords = myCityData[0] || {};
 
+    // Build query with database-specific GROUP_CONCAT/STRING_AGG
+    const isPostgres = db.dbType === 'postgres';
+    const groupConcatInterests = isPostgres
+      ? `STRING_AGG(COALESCE(it.translated_name, i.interest_name) || '|' || i.interest_icon, '||')`
+      : `GROUP_CONCAT(CONCAT(COALESCE(it.translated_name, i.interest_name), '|', i.interest_icon) SEPARATOR '||')`;
+    const groupConcatIds = isPostgres
+      ? `STRING_AGG(DISTINCT pi.interest_id::text, ',')`
+      : `GROUP_CONCAT(DISTINCT pi.interest_id)`;
+
     // Get profiles that match user's preferences and haven't been liked/passed yet
     const [rows] = await db.execute(
       `SELECT p.*, u.id as user_id,
@@ -75,14 +84,8 @@ class Profile {
          WHEN ? = 'pt' THEN COALESCE(co.name_pt, co.name_en)
          ELSE co.name_en
        END as country_name,
-       GROUP_CONCAT(
-         CONCAT(
-           COALESCE(it.translated_name, i.interest_name),
-           '|',
-           i.interest_icon
-         ) SEPARATOR '||'
-       ) as interests_with_icons,
-       GROUP_CONCAT(DISTINCT pi.interest_id) as interest_ids
+       ${groupConcatInterests} as interests_with_icons,
+       ${groupConcatIds} as interest_ids
        FROM profiles p
        JOIN users u ON p.user_id = u.id
        LEFT JOIN cities c ON p.city_id = c.id

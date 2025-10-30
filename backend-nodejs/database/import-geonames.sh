@@ -8,9 +8,27 @@ echo "  GeoNames Data Import (Optimized)"
 echo "========================================="
 echo ""
 
-ROOT_PASS="Manuela2011"
+# Load DB_TYPE from .env
+if [ -f ../.env ]; then
+    export $(grep -v '^#' ../.env | grep DB_TYPE | xargs)
+fi
+
+DB_TYPE="${DB_TYPE:-mysql}"
 DB_NAME="dating_app"
 BATCH_SIZE=1000
+
+echo "Database Type: $DB_TYPE"
+echo ""
+
+if [ "$DB_TYPE" = "postgres" ]; then
+    DB_USER="postgres"
+    DB_PASS="postgres"
+    export PGPASSWORD="$DB_PASS"
+else
+    ROOT_PASS="Manuela2011"
+    DB_USER="devuser"
+    DB_PASS="Manuela2011!"
+fi
 
 # Create temporary directory
 mkdir -p geonames_data
@@ -51,35 +69,66 @@ echo "4️⃣  Processing and importing data..."
 echo "   This uses Python for better performance and data handling."
 
 # Create Python script for processing
-cat > process_geonames.py << 'PYEOF'
+cat > process_geonames.py << PYEOF
 import csv
-import mysql.connector
 import sys
+import os
 
-ROOT_PASS = "Manuela2011"
-DB_NAME = "dating_app"
+DB_TYPE = os.environ.get('DB_TYPE', 'mysql')
+DB_NAME = "$DB_NAME"
+DB_USER = "$DB_USER"
+DB_PASS = "$DB_PASS"
 
 # Countries that have states
 COUNTRIES_WITH_STATES = {'US', 'BR', 'CA', 'MX', 'AU', 'IN', 'CN', 'RU', 'AR'}
 
-def connect_db():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password=ROOT_PASS,
-        database=DB_NAME
-    )
+if DB_TYPE == 'postgres':
+    import psycopg2
+    import psycopg2.extras
+
+    def connect_db():
+        return psycopg2.connect(
+            host="localhost",
+            user=DB_USER,
+            password=DB_PASS,
+            database=DB_NAME
+        )
+
+    def clear_tables(cursor):
+        cursor.execute("TRUNCATE TABLE cities CASCADE")
+        cursor.execute("TRUNCATE TABLE states CASCADE")
+        cursor.execute("TRUNCATE TABLE countries CASCADE")
+
+    def get_lastrowid(cursor):
+        cursor.execute("SELECT lastval()")
+        return cursor.fetchone()[0]
+else:
+    import mysql.connector
+
+    def connect_db():
+        return mysql.connector.connect(
+            host="localhost",
+            user=DB_USER,
+            password=DB_PASS,
+            database=DB_NAME
+        )
+
+    def clear_tables(cursor):
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("TRUNCATE TABLE cities")
+        cursor.execute("TRUNCATE TABLE states")
+        cursor.execute("TRUNCATE TABLE countries")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+
+    def get_lastrowid(cursor):
+        return cursor.lastrowid
 
 print("   📊 Importing countries...")
 conn = connect_db()
 cursor = conn.cursor()
 
 # Clear tables
-cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-cursor.execute("TRUNCATE TABLE cities")
-cursor.execute("TRUNCATE TABLE states")
-cursor.execute("TRUNCATE TABLE countries")
-cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+clear_tables(cursor)
 
 # Import countries
 country_map = {}
@@ -99,7 +148,7 @@ with open('countryInfo.txt', 'r', encoding='utf-8') as f:
             "INSERT INTO countries (code, name_en, name_fr, name_es, name_pt, has_states) VALUES (%s, %s, %s, %s, %s, %s)",
             (iso, country, country, country, country, has_states)
         )
-        country_map[iso] = cursor.lastrowid
+        country_map[iso] = get_lastrowid(cursor)
 
 conn.commit()
 print(f"   ✅ {len(country_map)} countries imported")
@@ -126,7 +175,7 @@ with open('admin1CodesASCII.txt', 'r', encoding='utf-8') as f:
                 "INSERT INTO states (country_id, code, name) VALUES (%s, %s, %s)",
                 (country_map[country_code], state_code, name)
             )
-            state_map[code] = cursor.lastrowid
+            state_map[code] = get_lastrowid(cursor)
 
 conn.commit()
 print(f"   ✅ {len(state_map)} states imported")
@@ -190,23 +239,43 @@ conn.close()
 print("\n✅ Import completed successfully!")
 PYEOF
 
-# Check if Python and mysql-connector are available
+# Check if Python and required database connector are available
 if command -v python3 &> /dev/null; then
-    python3 -c "import mysql.connector" 2> /dev/null
-    if [ $? -eq 0 ]; then
-        # Run Python script
-        python3 process_geonames.py
-        import_status=$?
-    else
-        echo "❌ Python mysql-connector-python not installed"
-        echo "   Installing mysql-connector-python..."
-        pip3 install --user mysql-connector-python > /dev/null 2>&1
+    if [ "$DB_TYPE" = "postgres" ]; then
+        python3 -c "import psycopg2" 2> /dev/null
         if [ $? -eq 0 ]; then
+            # Run Python script
             python3 process_geonames.py
             import_status=$?
         else
-            echo "❌ Failed to install mysql-connector-python"
-            import_status=1
+            echo "❌ Python psycopg2 not installed"
+            echo "   Installing psycopg2-binary..."
+            pip3 install --user psycopg2-binary > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                python3 process_geonames.py
+                import_status=$?
+            else
+                echo "❌ Failed to install psycopg2-binary"
+                import_status=1
+            fi
+        fi
+    else
+        python3 -c "import mysql.connector" 2> /dev/null
+        if [ $? -eq 0 ]; then
+            # Run Python script
+            python3 process_geonames.py
+            import_status=$?
+        else
+            echo "❌ Python mysql-connector-python not installed"
+            echo "   Installing mysql-connector-python..."
+            pip3 install --user mysql-connector-python > /dev/null 2>&1
+            if [ $? -eq 0 ]; then
+                python3 process_geonames.py
+                import_status=$?
+            else
+                echo "❌ Failed to install mysql-connector-python"
+                import_status=1
+            fi
         fi
     fi
 else
@@ -217,12 +286,21 @@ fi
 if [ $import_status -eq 0 ]; then
     echo ""
     echo "5️⃣  Getting statistics..."
-    mysql -uroot -p$ROOT_PASS $DB_NAME << EOF
+    if [ "$DB_TYPE" = "postgres" ]; then
+        psql -U $DB_USER -h localhost -d $DB_NAME << EOF
+SELECT
+    (SELECT COUNT(*) FROM countries) as "Countries",
+    (SELECT COUNT(*) FROM states) as "States",
+    (SELECT COUNT(*) FROM cities) as "Cities";
+EOF
+    else
+        mysql -uroot -p$ROOT_PASS $DB_NAME << EOF
 SELECT
     (SELECT COUNT(*) FROM countries) as 'Countries',
     (SELECT COUNT(*) FROM states) as 'States',
     (SELECT COUNT(*) FROM cities) as 'Cities';
 EOF
+    fi
 
     echo ""
     echo "========================================="

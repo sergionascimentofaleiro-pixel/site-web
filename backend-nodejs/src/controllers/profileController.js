@@ -88,9 +88,14 @@ exports.getMyProfile = async (req, res) => {
     // Format birth_date to YYYY-MM-DD for HTML date input
     if (profile.birth_date) {
       console.log('Raw birth_date from DB:', profile.birth_date);
-      // With dateStrings: true, it's already a string like "1979-06-13T00:00:00.000Z"
-      // Just extract the date part
-      profile.birth_date = profile.birth_date.split('T')[0];
+      // Handle both Date objects (PostgreSQL) and strings (MySQL)
+      if (profile.birth_date instanceof Date) {
+        // PostgreSQL returns Date object
+        profile.birth_date = profile.birth_date.toISOString().split('T')[0];
+      } else if (typeof profile.birth_date === 'string') {
+        // MySQL returns string
+        profile.birth_date = profile.birth_date.split('T')[0];
+      }
       console.log('Formatted birth_date sent to frontend:', profile.birth_date);
     }
 

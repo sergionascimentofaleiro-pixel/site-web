@@ -1,31 +1,62 @@
 import csv
-import mysql.connector
 import sys
+import os
 
-ROOT_PASS = "Manuela2011"
+DB_TYPE = os.environ.get('DB_TYPE', 'mysql')
 DB_NAME = "dating_app"
+DB_USER = "postgres"
+DB_PASS = "postgres"
 
 # Countries that have states
 COUNTRIES_WITH_STATES = {'US', 'BR', 'CA', 'MX', 'AU', 'IN', 'CN', 'RU', 'AR'}
 
-def connect_db():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password=ROOT_PASS,
-        database=DB_NAME
-    )
+if DB_TYPE == 'postgres':
+    import psycopg2
+    import psycopg2.extras
+
+    def connect_db():
+        return psycopg2.connect(
+            host="localhost",
+            user=DB_USER,
+            password=DB_PASS,
+            database=DB_NAME
+        )
+
+    def clear_tables(cursor):
+        cursor.execute("TRUNCATE TABLE cities CASCADE")
+        cursor.execute("TRUNCATE TABLE states CASCADE")
+        cursor.execute("TRUNCATE TABLE countries CASCADE")
+
+    def get_lastrowid(cursor):
+        cursor.execute("SELECT lastval()")
+        return cursor.fetchone()[0]
+else:
+    import mysql.connector
+
+    def connect_db():
+        return mysql.connector.connect(
+            host="localhost",
+            user=DB_USER,
+            password=DB_PASS,
+            database=DB_NAME
+        )
+
+    def clear_tables(cursor):
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("TRUNCATE TABLE cities")
+        cursor.execute("TRUNCATE TABLE states")
+        cursor.execute("TRUNCATE TABLE countries")
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+
+    def get_lastrowid(cursor):
+        return cursor.lastrowid
 
 print("   📊 Importing countries...")
 conn = connect_db()
 cursor = conn.cursor()
 
 # Clear tables
-cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-cursor.execute("TRUNCATE TABLE cities")
-cursor.execute("TRUNCATE TABLE states")
-cursor.execute("TRUNCATE TABLE countries")
-cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+clear_tables(cursor)
 
 # Import countries
 country_map = {}
@@ -45,7 +76,7 @@ with open('countryInfo.txt', 'r', encoding='utf-8') as f:
             "INSERT INTO countries (code, name_en, name_fr, name_es, name_pt, has_states) VALUES (%s, %s, %s, %s, %s, %s)",
             (iso, country, country, country, country, has_states)
         )
-        country_map[iso] = cursor.lastrowid
+        country_map[iso] = get_lastrowid(cursor)
 
 conn.commit()
 print(f"   ✅ {len(country_map)} countries imported")
@@ -72,7 +103,7 @@ with open('admin1CodesASCII.txt', 'r', encoding='utf-8') as f:
                 "INSERT INTO states (country_id, code, name) VALUES (%s, %s, %s)",
                 (country_map[country_code], state_code, name)
             )
-            state_map[code] = cursor.lastrowid
+            state_map[code] = get_lastrowid(cursor)
 
 conn.commit()
 print(f"   ✅ {len(state_map)} states imported")

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Full database reset script for dating app
+# Supports both MySQL/MariaDB and PostgreSQL
 # This script will:
 # 1. Drop and recreate the database
 # 2. Create all tables (schema + interests)
@@ -12,11 +13,30 @@ echo "  Dating App - Full Database Reset"
 echo "========================================="
 echo ""
 
-# Configuration
+# Load DB_TYPE from .env
+if [ -f ../.env ]; then
+    export $(grep -v '^#' ../.env | grep DB_TYPE | xargs)
+fi
+
+DB_TYPE="${DB_TYPE:-mysql}"
+
+echo "Database Type: $DB_TYPE"
+echo ""
+
+# Configuration based on DB type
 DB_NAME="dating_app"
-DB_USER="devuser"
-DB_PASS="Manuela2011!"
-ROOT_PASS="Manuela2011"
+
+if [ "$DB_TYPE" = "postgres" ]; then
+    # PostgreSQL configuration
+    DB_USER="postgres"
+    DB_PASS="postgres"
+    export PGPASSWORD="$DB_PASS"
+else
+    # MySQL/MariaDB configuration (default)
+    DB_USER="devuser"
+    DB_PASS="Manuela2011!"
+    ROOT_PASS="Manuela2011"
+fi
 
 echo "⚠️  WARNING: This will DELETE all data in the database!"
 echo "Database: $DB_NAME"
@@ -48,12 +68,19 @@ echo ""
 
 # Step 1: Drop and recreate database
 echo "1️⃣  Dropping and recreating database..."
-mysql -uroot -p$ROOT_PASS << EOF
+if [ "$DB_TYPE" = "postgres" ]; then
+    psql -U $DB_USER -h localhost << EOF
+DROP DATABASE IF EXISTS $DB_NAME;
+CREATE DATABASE $DB_NAME WITH ENCODING 'UTF8' TEMPLATE template0;
+EOF
+else
+    mysql -uroot -p$ROOT_PASS << EOF
 DROP DATABASE IF EXISTS $DB_NAME;
 CREATE DATABASE $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';
 FLUSH PRIVILEGES;
 EOF
+fi
 
 if [ $? -eq 0 ]; then
     echo "✅ Database recreated successfully"
@@ -65,7 +92,19 @@ fi
 # Step 2: Create main schema
 echo ""
 echo "2️⃣  Creating main tables (users, profiles, likes, matches, messages)..."
-mysql -uroot -p$ROOT_PASS $DB_NAME < schema.sql
+if [ "$DB_TYPE" = "postgres" ]; then
+    psql -U $DB_USER -h localhost -d $DB_NAME -f schema-postgres.sql
+
+    # Grant all privileges on all tables and sequences to the user
+    psql -U $DB_USER -h localhost -d $DB_NAME << EOF
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USER;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USER;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $DB_USER;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $DB_USER;
+EOF
+else
+    mysql -uroot -p$ROOT_PASS $DB_NAME < schema.sql
+fi
 
 if [ $? -eq 0 ]; then
     echo "✅ Main schema created successfully"
@@ -77,61 +116,83 @@ fi
 # Step 3: Create interests schema
 echo ""
 echo "3️⃣  Creating interests tables..."
-mysql -uroot -p$ROOT_PASS $DB_NAME < interests-schema.sql
-
-if [ $? -eq 0 ]; then
-    echo "✅ Interests schema created successfully"
+if [ "$DB_TYPE" = "postgres" ]; then
+    echo "ℹ️  Skipping (already included in main schema for PostgreSQL)"
 else
-    echo "❌ Error creating interests schema"
-    exit 1
+    mysql -uroot -p$ROOT_PASS $DB_NAME < interests-schema.sql
+    if [ $? -ne 0 ]; then
+        echo "❌ Error creating interests schema"
+        exit 1
+    fi
+    echo "✅ Interests schema created successfully"
 fi
 
 # Step 4: Seed interests data
 echo ""
 echo "4️⃣  Seeding interests data (10 categories, 100 interests)..."
-mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < interests-seed.sql
-
-if [ $? -eq 0 ]; then
+if [ "$DB_TYPE" = "postgres" ]; then
+    # Remove MySQL-specific SET commands for PostgreSQL
+    grep -v "^SET " interests-seed.sql | psql -U $DB_USER -h localhost -d $DB_NAME > /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        echo "❌ Error seeding interests data"
+        exit 1
+    fi
     echo "✅ Interests data seeded successfully"
 else
-    echo "❌ Error seeding interests data"
-    exit 1
+    mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < interests-seed.sql
+    if [ $? -ne 0 ]; then
+        echo "❌ Error seeding interests data"
+        exit 1
+    fi
+    echo "✅ Interests data seeded successfully"
 fi
 
 # Step 4.5: Create interest translation tables
 echo ""
 echo "4️⃣.5 Creating interest translation tables..."
-mysql -uroot -p$ROOT_PASS $DB_NAME < interests-translations-schema.sql
-
-if [ $? -eq 0 ]; then
-    echo "✅ Interest translation tables created successfully"
+if [ "$DB_TYPE" = "postgres" ]; then
+    echo "ℹ️  Skipping (already included in main schema for PostgreSQL)"
 else
-    echo "❌ Error creating translation tables"
-    exit 1
+    mysql -uroot -p$ROOT_PASS $DB_NAME < interests-translations-schema.sql
+    if [ $? -ne 0 ]; then
+        echo "❌ Error creating translation tables"
+        exit 1
+    fi
+    echo "✅ Interest translation tables created successfully"
 fi
 
 # Step 4.6: Seed interest translations
 echo ""
 echo "4️⃣.6 Seeding interest translations (en, fr, es, pt)..."
-mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < interests-translations-seed.sql
-
-if [ $? -eq 0 ]; then
+if [ "$DB_TYPE" = "postgres" ]; then
+    # Remove MySQL-specific SET commands and convert \' to '' for PostgreSQL
+    grep -v "^SET " interests-translations-seed.sql | sed "s/\\\\'/\'\'/g" | psql -U $DB_USER -h localhost -d $DB_NAME
+    if [ $? -ne 0 ]; then
+        echo "❌ Error seeding translations"
+        exit 1
+    fi
     echo "✅ Interest translations seeded successfully (4 languages)"
 else
-    echo "❌ Error seeding translations"
-    exit 1
+    mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < interests-translations-seed.sql
+    if [ $? -ne 0 ]; then
+        echo "❌ Error seeding translations"
+        exit 1
+    fi
+    echo "✅ Interest translations seeded successfully (4 languages)"
 fi
 
 # Step 4.7: Create location tables
 echo ""
 echo "4️⃣.7 Creating location tables (countries, states, cities)..."
-mysql -uroot -p$ROOT_PASS $DB_NAME < locations-schema.sql
-
-if [ $? -eq 0 ]; then
-    echo "✅ Location tables created successfully"
+if [ "$DB_TYPE" = "postgres" ]; then
+    echo "ℹ️  Skipping (already included in main schema for PostgreSQL)"
 else
-    echo "❌ Error creating location tables"
-    exit 1
+    mysql -uroot -p$ROOT_PASS $DB_NAME < locations-schema.sql
+    if [ $? -ne 0 ]; then
+        echo "❌ Error creating location tables"
+        exit 1
+    fi
+    echo "✅ Location tables created successfully"
 fi
 
 # Step 4.8: Import GeoNames data (all countries and cities with population > 500)
@@ -155,7 +216,11 @@ fi
 # Step 4.9: Add foreign key constraints for locations in profiles table
 echo ""
 echo "4️⃣.9 Adding location foreign keys to profiles table..."
-mysql -uroot -p$ROOT_PASS $DB_NAME < add-location-foreign-keys.sql
+if [ "$DB_TYPE" = "postgres" ]; then
+    psql -U $DB_USER -h localhost -d $DB_NAME -f add-location-foreign-keys.sql
+else
+    mysql -uroot -p$ROOT_PASS $DB_NAME < add-location-foreign-keys.sql
+fi
 
 if [ $? -eq 0 ]; then
     echo "✅ Location foreign keys added successfully"
@@ -181,8 +246,12 @@ if [ $? -eq 0 ]; then
 else
     echo "❌ Error generating French test data"
     echo "    Falling back to basic test data..."
-    mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < seed-data.sql
-    mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < assign-random-interests.sql > /dev/null 2>&1
+    if [ "$DB_TYPE" = "postgres" ]; then
+        echo "⚠️  TODO: Adapt seed-data.sql for PostgreSQL"
+    else
+        mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < seed-data.sql
+        mysql -uroot -p$ROOT_PASS --default-character-set=utf8mb4 $DB_NAME < assign-random-interests.sql > /dev/null 2>&1
+    fi
 fi
 
 # Summary
@@ -192,7 +261,21 @@ echo "  ✅ Database Reset Complete!"
 echo "========================================="
 echo ""
 echo "Summary:"
-mysql -uroot -p$ROOT_PASS $DB_NAME << EOF
+if [ "$DB_TYPE" = "postgres" ]; then
+    psql -U $DB_USER -h localhost -d $DB_NAME << EOF
+SELECT
+    (SELECT COUNT(*) FROM users) as "Users",
+    (SELECT COUNT(*) FROM profiles) as "Profiles",
+    (SELECT COUNT(*) FROM interest_categories) as "Interest Categories",
+    (SELECT COUNT(*) FROM interests) as "Interests",
+    (SELECT COUNT(*) FROM interest_translations) as "Interest Translations",
+    (SELECT COUNT(*) FROM profile_interests) as "Profile-Interest Links",
+    (SELECT COUNT(*) FROM countries) as "Countries",
+    (SELECT COUNT(*) FROM states) as "States",
+    (SELECT COUNT(*) FROM cities) as "Cities";
+EOF
+else
+    mysql -uroot -p$ROOT_PASS $DB_NAME << EOF
 SELECT
     (SELECT COUNT(*) FROM users) as 'Users',
     (SELECT COUNT(*) FROM profiles) as 'Profiles',
@@ -204,6 +287,7 @@ SELECT
     (SELECT COUNT(*) FROM states) as 'States',
     (SELECT COUNT(*) FROM cities) as 'Cities';
 EOF
+fi
 
 echo ""
 echo "Test account credentials:"

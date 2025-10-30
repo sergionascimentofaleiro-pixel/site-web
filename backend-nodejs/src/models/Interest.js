@@ -78,11 +78,22 @@ class Interest {
 
       // Insert new interests
       if (interestIds && interestIds.length > 0) {
-        const values = interestIds.map(interestId => [profileId, interestId]);
-        await connection.query(
-          'INSERT INTO profile_interests (profile_id, interest_id) VALUES ?',
-          [values]
-        );
+        if (db.dbType === 'postgres') {
+          // PostgreSQL: build explicit VALUES tuples
+          const placeholders = interestIds.map(() => `(?, ?)`).join(', ');
+          const params = interestIds.flatMap(interestId => [profileId, interestId]);
+          await connection.query(
+            `INSERT INTO profile_interests (profile_id, interest_id) VALUES ${placeholders}`,
+            params
+          );
+        } else {
+          // MySQL: use bulk insert syntax
+          const values = interestIds.map(interestId => [profileId, interestId]);
+          await connection.query(
+            'INSERT INTO profile_interests (profile_id, interest_id) VALUES ?',
+            [values]
+          );
+        }
       }
 
       await connection.commit();
