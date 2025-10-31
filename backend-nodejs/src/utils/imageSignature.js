@@ -84,9 +84,10 @@ function generateSignedImageUrl(imagePath, userId) {
   // For local images (/uploads/...), generate signed URL
   const { token } = generateImageToken(imagePath, userId);
 
-  // Return URL in format: /api/images/secure?path=/uploads/...&token=xxx&userId=xxx
+  // Use absolute URL with BACKEND_URL to ensure images are fetched from backend
+  const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
   const encodedPath = encodeURIComponent(imagePath);
-  return `/api/images/secure?path=${encodedPath}&token=${token}&userId=${userId}`;
+  return `${backendUrl}/api/images/secure?path=${encodedPath}&token=${token}&userId=${userId}`;
 }
 
 module.exports = {

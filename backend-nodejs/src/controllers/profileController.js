@@ -111,6 +111,11 @@ exports.getMyProfile = async (req, res) => {
       profile.email = user.email;
     }
 
+    // Generate signed URL for profile photo (only for local uploads)
+    if (profile.profile_photo && profile.profile_photo.startsWith('/uploads/')) {
+      profile.profile_photo = generateSignedImageUrl(profile.profile_photo, userId);
+    }
+
     res.json(profile);
   } catch (error) {
     logger.error('Get profile error:', { error: error.message, userId: req.user.userId });

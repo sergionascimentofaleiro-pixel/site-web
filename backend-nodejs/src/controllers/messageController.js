@@ -2,6 +2,7 @@ const Message = require('../models/Message');
 const Match = require('../models/Match');
 const Subscription = require('../models/Subscription');
 const { sanitizeMessage } = require('../utils/sanitizer');
+const { generateSignedImageUrl } = require('../utils/imageSignature');
 const logger = require('../utils/logger');
 
 // Send a message
@@ -106,7 +107,15 @@ exports.getConversations = async (req, res) => {
     const userId = req.user.userId;
     const conversations = await Message.getLastMessages(userId);
 
-    res.json(conversations);
+    // Generate signed URLs for profile photos (only for local uploads)
+    const conversationsWithSignedUrls = conversations.map(conv => {
+      if (conv.otherUser && conv.otherUser.photo && conv.otherUser.photo.startsWith('/uploads/')) {
+        conv.otherUser.photo = generateSignedImageUrl(conv.otherUser.photo, userId);
+      }
+      return conv;
+    });
+
+    res.json(conversationsWithSignedUrls);
   } catch (error) {
     logger.error('Get conversations error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });

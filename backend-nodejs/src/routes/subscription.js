@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const subscriptionController = require('../controllers/subscriptionController');
 const { authenticateToken } = require('../middleware/auth');
+const { apiLimiter } = require('../middleware/rateLimiter');
 
-// Public route - get available plans
-router.get('/plans', subscriptionController.getPlans);
+// Public route - get available plans (with rate limiting)
+router.get('/plans', apiLimiter, subscriptionController.getPlans);
 
 // PayPal webhook route (no auth required)
 router.post('/webhook', express.json(), subscriptionController.webhook);

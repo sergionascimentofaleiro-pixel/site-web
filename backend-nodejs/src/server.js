@@ -40,8 +40,8 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:", "http:"],
-      connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:4200'],
+      imgSrc: ["'self'", "data:", "https:", "http:", "http://localhost:3000", "https://curvy-backend.fly.dev"],
+      connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:4200', "http://localhost:3000", "https://curvy-backend.fly.dev"],
       fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"],
       mediaSrc: ["'self'"],
@@ -60,10 +60,11 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.use(express.json());
+// Limit request body size to prevent DoS attacks
+app.use(express.json({ limit: '1mb' }));
 
-// Serve static files (uploaded photos)
-app.use('/uploads', express.static('uploads'));
+// REMOVED: Direct static file serving - use /api/images/secure instead
+// app.use('/uploads', express.static('uploads'));
 
 // Health check route
 app.get('/api/health', (req, res) => {

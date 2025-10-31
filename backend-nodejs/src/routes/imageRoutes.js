@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { verifyImageToken } = require('../utils/imageSignature');
 const { getWatermarkedImage } = require('../middleware/watermarkImage');
+const logger = require('../utils/logger');
 
 /**
  * Serve secure watermarked images with token validation
@@ -36,7 +37,7 @@ router.get('/secure', async (req, res) => {
     // Send image
     res.send(watermarkedImage);
   } catch (error) {
-    console.error('Error serving secure image:', error);
+    logger.error('Error serving secure image:', { error: error.message, imagePath: req.query.path });
 
     if (error.message === 'Image not found') {
       return res.status(404).json({ error: 'Image not found' });

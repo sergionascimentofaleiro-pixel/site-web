@@ -1,5 +1,6 @@
 const Match = require('../models/Match');
 const { generateSignedImageUrl } = require('../utils/imageSignature');
+const logger = require('../utils/logger');
 
 // Get all matches for current user
 exports.getMatches = async (req, res) => {
@@ -9,15 +10,15 @@ exports.getMatches = async (req, res) => {
 
     // Generate signed URLs for profile photos (only for local uploads)
     const matchesWithSignedUrls = matches.map(match => {
-      if (match.profile_photo && match.profile_photo.startsWith('/uploads/')) {
-        match.profile_photo = generateSignedImageUrl(match.profile_photo, userId);
+      if (match.otherUser && match.otherUser.photo && match.otherUser.photo.startsWith('/uploads/')) {
+        match.otherUser.photo = generateSignedImageUrl(match.otherUser.photo, userId);
       }
       return match;
     });
 
     res.json(matchesWithSignedUrls);
   } catch (error) {
-    console.error('Get matches error:', error);
+    logger.error('Get matches error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -41,7 +42,7 @@ exports.unmatch = async (req, res) => {
     await Match.unmatch(matchId);
     res.json({ message: 'Unmatched successfully' });
   } catch (error) {
-    console.error('Unmatch error:', error);
+    logger.error('Unmatch error:', { error: error.message, matchId: req.params.matchId, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
