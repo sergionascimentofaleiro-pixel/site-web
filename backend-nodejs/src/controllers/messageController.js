@@ -1,6 +1,8 @@
 const Message = require('../models/Message');
 const Match = require('../models/Match');
 const Subscription = require('../models/Subscription');
+const { sanitizeMessage } = require('../utils/sanitizer');
+const logger = require('../utils/logger');
 
 // Send a message
 exports.sendMessage = async (req, res) => {
@@ -10,6 +12,12 @@ exports.sendMessage = async (req, res) => {
 
     if (!matchId || !receiverId || !message) {
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Sanitize message to prevent XSS
+    const sanitizedMessage = sanitizeMessage(message);
+    if (!sanitizedMessage || sanitizedMessage.length === 0) {
+      return res.status(400).json({ error: 'Invalid message content' });
     }
 
     // Verify the match exists and user is part of it
@@ -33,8 +41,8 @@ exports.sendMessage = async (req, res) => {
       });
     }
 
-    // Create the message
-    const messageId = await Message.create(matchId, userId, receiverId, message);
+    // Create the message with sanitized content
+    const messageId = await Message.create(matchId, userId, receiverId, sanitizedMessage);
 
     // Add conversation to user's list (if not already there)
     await Subscription.addConversation(userId, matchId);
@@ -45,7 +53,7 @@ exports.sendMessage = async (req, res) => {
       conversationsRemaining: canAccessResult.remaining
     });
   } catch (error) {
-    console.error('Send message error:', error);
+    logger.error('Send message error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -74,7 +82,7 @@ exports.getConversation = async (req, res) => {
 
     res.json(messages);
   } catch (error) {
-    console.error('Get conversation error:', error);
+    logger.error('Get conversation error:', { error: error.message, matchId: req.params.matchId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -87,7 +95,7 @@ exports.getUnreadCount = async (req, res) => {
 
     res.json({ unreadCount: count });
   } catch (error) {
-    console.error('Get unread count error:', error);
+    logger.error('Get unread count error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -100,7 +108,7 @@ exports.getConversations = async (req, res) => {
 
     res.json(conversations);
   } catch (error) {
-    console.error('Get conversations error:', error);
+    logger.error('Get conversations error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -119,7 +127,7 @@ exports.getUnreadCounts = async (req, res) => {
 
     res.json(countsMap);
   } catch (error) {
-    console.error('Get unread counts error:', error);
+    logger.error('Get unread counts error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };

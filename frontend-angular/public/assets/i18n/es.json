@@ -87,7 +87,8 @@
     "checkBackLater": "¡Vuelve más tarde para nuevos matches!",
     "refresh": "Actualizar",
     "itsAMatch": "🎉 ¡Es un Match! 🎉",
-    "matchMessage": "¡Tú y <strong>{{name}}</strong> se gustaron mutuamente!",
+    "matchMessagePrefix": "¡Tú y",
+    "matchMessageSuffix": "se gustaron mutuamente!",
     "keepSwiping": "Seguir deslizando",
     "sendMessage": "Enviar un mensaje",
     "nearby": "Cerca"
@@ -159,6 +160,7 @@
     "error": "Error en el pago",
     "required": "Suscripción requerida",
     "limitReached": "Has alcanzado el límite de <strong>5 conversaciones gratuitas</strong>.",
+    "limitReachedText": "Has alcanzado el límite de 5 conversaciones gratuitas.",
     "unlockUnlimited": "¡Suscríbete ahora para desbloquear conversaciones ilimitadas con todos tus matches!",
     "viewPlans": "Ver planes de suscripción",
     "freeNote": "¡Puedes seguir chateando con tus primeros 5 matches gratis!",

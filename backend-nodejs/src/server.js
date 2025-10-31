@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const http = require('http');
 const { Server } = require('socket.io');
 const jwt = require('jsonwebtoken');
+const logger = require('./utils/logger');
 require('dotenv').config();
 
 // Import database connection (initializes connection)
@@ -30,8 +32,34 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
+// Security Middleware
+// Configure helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https:", "http:"],
+      connectSrc: ["'self'", process.env.FRONTEND_URL || 'http://localhost:4200'],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"]
+    }
+  },
+  crossOriginEmbedderPolicy: false, // Allow embedding images from external sources
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
+// CORS configuration - restrict to frontend origin only
+app.use(cors({
+  origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
 
 // Serve static files (uploaded photos)
@@ -54,7 +82,7 @@ app.use('/api/images', imageRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  logger.error('Unhandled error:', { error: err.message, stack: err.stack });
   res.status(500).json({ error: 'Internal server error' });
 });
 
@@ -83,7 +111,7 @@ io.use((socket, next) => {
 // Socket.io connection handling
 io.on('connection', (socket) => {
   const userId = socket.userId;
-  console.log(`User ${userId} connected via WebSocket`);
+  logger.info(`User ${userId} connected via WebSocket`);
 
   // Join user to their own room for direct messages
   socket.join(`user:${userId}`);
@@ -91,13 +119,13 @@ io.on('connection', (socket) => {
   // Handle joining a conversation room
   socket.on('join:conversation', (matchId) => {
     socket.join(`match:${matchId}`);
-    console.log(`User ${userId} joined conversation ${matchId}`);
+    logger.debug(`User ${userId} joined conversation ${matchId}`);
   });
 
   // Handle leaving a conversation room
   socket.on('leave:conversation', (matchId) => {
     socket.leave(`match:${matchId}`);
-    console.log(`User ${userId} left conversation ${matchId}`);
+    logger.debug(`User ${userId} left conversation ${matchId}`);
   });
 
   // Handle sending a message
@@ -105,11 +133,19 @@ io.on('connection', (socket) => {
     const { matchId, receiverId, message } = data;
 
     try {
-      console.log(`[WebSocket] User ${userId} sending message to match ${matchId}`);
+      logger.debug(`[WebSocket] User ${userId} sending message to match ${matchId}`);
 
-      // Import models
+      // Import models and sanitizer
       const Message = require('./models/Message');
       const Subscription = require('./models/Subscription');
+      const { sanitizeMessage } = require('./utils/sanitizer');
+
+      // Sanitize message to prevent XSS
+      const sanitizedMessage = sanitizeMessage(message);
+      if (!sanitizedMessage || sanitizedMessage.length === 0) {
+        socket.emit('message:error', { error: 'Invalid message content' });
+        return;
+      }
 
       // Check if user can access this conversation
       const canAccessResult = await Subscription.canAccessConversation(userId, matchId);
@@ -123,8 +159,8 @@ io.on('connection', (socket) => {
         return;
       }
 
-      // Save message to database
-      const messageId = await Message.create(matchId, userId, receiverId, message);
+      // Save message to database with sanitized content
+      const messageId = await Message.create(matchId, userId, receiverId, sanitizedMessage);
 
       // Add conversation to user's list (if not already there)
       await Subscription.addConversation(userId, matchId);
@@ -132,7 +168,7 @@ io.on('connection', (socket) => {
       // Get the full message data
       const savedMessage = await Message.getById(messageId);
 
-      console.log(`[WebSocket] Message saved, emitting to match:${matchId} and user:${receiverId}`);
+      logger.debug(`[WebSocket] Message saved, emitting to match:${matchId} and user:${receiverId}`);
 
       // Emit to both sender and receiver in the conversation room
       io.to(`match:${matchId}`).emit('message:new', savedMessage);
@@ -146,9 +182,9 @@ io.on('connection', (socket) => {
       // Also emit directly to sender to confirm receipt
       socket.emit('message:new', savedMessage);
 
-      console.log(`[WebSocket] Message emitted successfully`);
+      logger.debug(`[WebSocket] Message emitted successfully`);
     } catch (error) {
-      console.error('Error sending message:', error);
+      logger.error('Error sending message via WebSocket:', { error: error.message, userId, matchId });
       socket.emit('message:error', { error: 'Failed to send message' });
     }
   });
@@ -166,7 +202,7 @@ io.on('connection', (socket) => {
 
   // Handle disconnect
   socket.on('disconnect', () => {
-    console.log(`User ${userId} disconnected`);
+    logger.info(`User ${userId} disconnected`);
   });
 });
 
@@ -179,8 +215,9 @@ const { setupScheduler } = require('./scheduler');
 // Start server only if not in test mode
 if (process.env.NODE_ENV !== 'test') {
   server.listen(PORT, () => {
-    console.log(`Dating app server is running on port ${PORT}`);
-    console.log(`WebSocket server is ready`);
+    logger.info(`Dating app server is running on port ${PORT}`);
+    logger.info(`WebSocket server is ready`);
+    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 
     // Initialize scheduler
     setupScheduler();

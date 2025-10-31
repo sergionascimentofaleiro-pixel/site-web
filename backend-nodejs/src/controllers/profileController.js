@@ -1,6 +1,8 @@
 const Profile = require('../models/Profile');
 const Like = require('../models/Like');
 const { generateSignedImageUrl } = require('../utils/imageSignature');
+const { sanitizeProfileData } = require('../utils/sanitizer');
+const logger = require('../utils/logger');
 
 // Create or update profile
 exports.createProfile = async (req, res) => {
@@ -22,7 +24,7 @@ exports.createProfile = async (req, res) => {
     const interests = req.body.interests;
     const profilePhoto = req.body.profilePhoto || req.body.profile_photo;
 
-    console.log('Received birthDate from frontend:', birthDate);
+    logger.debug('Received birthDate from frontend:', { birthDate, userId });
 
     // Validate required fields
     if (!firstName || !birthDate || !gender || !lookingFor || !phone || !countryId || !cityId) {
@@ -52,15 +54,18 @@ exports.createProfile = async (req, res) => {
       profilePhoto
     };
 
+    // Sanitize all user inputs to prevent XSS
+    const sanitizedData = sanitizeProfileData(profileData);
+
     if (existingProfile) {
       // Update existing profile
-      await Profile.update(userId, profileData);
+      await Profile.update(userId, sanitizedData);
       res.json({ message: 'Profile updated successfully' });
     } else {
       // Create new profile
       const profileId = await Profile.create({
         userId,
-        ...profileData
+        ...sanitizedData
       });
 
       // Activate user account when profile is created
@@ -70,7 +75,7 @@ exports.createProfile = async (req, res) => {
       res.status(201).json({ message: 'Profile created successfully', profileId });
     }
   } catch (error) {
-    console.error('Profile creation error:', error);
+    logger.error('Profile creation error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -87,7 +92,7 @@ exports.getMyProfile = async (req, res) => {
 
     // Format birth_date to YYYY-MM-DD for HTML date input
     if (profile.birth_date) {
-      console.log('Raw birth_date from DB:', profile.birth_date);
+      logger.debug('Raw birth_date from DB:', { birthDate: profile.birth_date, userId });
       // Handle both Date objects (PostgreSQL) and strings (MySQL)
       if (profile.birth_date instanceof Date) {
         // PostgreSQL returns Date object
@@ -96,7 +101,7 @@ exports.getMyProfile = async (req, res) => {
         // MySQL returns string
         profile.birth_date = profile.birth_date.split('T')[0];
       }
-      console.log('Formatted birth_date sent to frontend:', profile.birth_date);
+      logger.debug('Formatted birth_date sent to frontend:', { birthDate: profile.birth_date, userId });
     }
 
     // Get user email from users table
@@ -108,7 +113,7 @@ exports.getMyProfile = async (req, res) => {
 
     res.json(profile);
   } catch (error) {
-    console.error('Get profile error:', error);
+    logger.error('Get profile error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -132,7 +137,7 @@ exports.getPotentialMatches = async (req, res) => {
 
     res.json(matchesWithSignedUrls);
   } catch (error) {
-    console.error('Get matches error:', error);
+    logger.error('Get matches error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -161,14 +166,14 @@ exports.swipe = async (req, res) => {
     // Handle duplicate entry error gracefully (user already swiped on this profile)
     // MySQL: ER_DUP_ENTRY, PostgreSQL: 23505 (unique_violation)
     if (error.code === 'ER_DUP_ENTRY' || error.code === '23505') {
-      console.log(`User ${userId} already swiped on user ${targetUserId}`);
+      logger.debug('User already swiped on profile (duplicate entry)', { userId, targetUserId });
       return res.json({
         message: 'Already swiped on this profile',
         isMatch: false
       });
     }
 
-    console.error('Swipe error:', error);
+    logger.error('Swipe error:', { error: error.message, userId, targetUserId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -194,7 +199,7 @@ exports.uploadPhoto = async (req, res) => {
       message: 'Photo uploaded successfully'
     });
   } catch (error) {
-    console.error('Upload photo error:', error);
+    logger.error('Upload photo error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Failed to upload photo' });
   }
 };
@@ -225,7 +230,7 @@ exports.updatePhotoUrl = async (req, res) => {
       message: 'Photo URL updated successfully'
     });
   } catch (error) {
-    console.error('Update photo URL error:', error);
+    logger.error('Update photo URL error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Failed to update photo URL' });
   }
 };

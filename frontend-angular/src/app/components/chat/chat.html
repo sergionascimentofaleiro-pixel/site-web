@@ -35,7 +35,7 @@
       <div class="subscription-prompt">
         <div class="lock-icon">🔒</div>
         <h2>{{ 'subscription.required' | translate }}</h2>
-        <p [innerHTML]="'subscription.limitReached' | translate"></p>
+        <p>{{ 'subscription.limitReachedText' | translate }}</p>
         <p>{{ 'subscription.unlockUnlimited' | translate }}</p>
         <button class="btn-subscribe" (click)="goToSubscription()">
           💎 {{ 'subscription.viewPlans' | translate }}

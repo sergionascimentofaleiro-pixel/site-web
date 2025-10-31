@@ -124,7 +124,11 @@
           />
         </div>
 
-        <p class="match-message" [innerHTML]="'discover.matchMessage' | translate:{ name: matchedProfile()!.first_name }"></p>
+        <p class="match-message">
+          {{ 'discover.matchMessagePrefix' | translate }}
+          <strong>{{ matchedProfile()!.first_name }}</strong>
+          {{ 'discover.matchMessageSuffix' | translate }}
+        </p>
 
         <div class="match-actions">
           <button class="btn-secondary" (click)="closeMatchPopup()">

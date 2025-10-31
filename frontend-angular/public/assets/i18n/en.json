@@ -87,7 +87,8 @@
     "checkBackLater": "Check back later for new matches!",
     "refresh": "Refresh",
     "itsAMatch": "🎉 It's a Match! 🎉",
-    "matchMessage": "You and <strong>{{name}}</strong> liked each other!",
+    "matchMessagePrefix": "You and",
+    "matchMessageSuffix": "liked each other!",
     "keepSwiping": "Keep Swiping",
     "sendMessage": "Send a Message",
     "nearby": "Nearby"
@@ -159,6 +160,7 @@
     "error": "Payment error",
     "required": "Subscription Required",
     "limitReached": "You've reached the limit of <strong>5 free conversations</strong>.",
+    "limitReachedText": "You've reached the limit of 5 free conversations.",
     "unlockUnlimited": "Subscribe now to unlock unlimited conversations with all your matches!",
     "viewPlans": "View Subscription Plans",
     "freeNote": "You can still chat with your first 5 matches for free!",

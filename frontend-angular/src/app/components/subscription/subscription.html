@@ -64,7 +64,7 @@
                 {{ 'subscription.conversationsRemaining' | translate: {count: status()!.conversationsRemaining} }}
               </p>
             } @else {
-              <p class="limit-reached" [innerHTML]="'subscription.limitReached' | translate"></p>
+              <p class="limit-reached">{{ 'subscription.limitReachedText' | translate }}</p>
               <p class="upgrade-hint">
                 {{ 'subscription.unlockUnlimited' | translate }}
               </p>

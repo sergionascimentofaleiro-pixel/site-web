@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
+const { sanitizeEmail } = require('../utils/sanitizer');
+const logger = require('../utils/logger');
 
 // Generate JWT token
 const generateToken = (userId, email) => {
@@ -20,21 +22,27 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    // Sanitize and validate email
+    const sanitizedEmail = sanitizeEmail(email);
+    if (!sanitizedEmail) {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
     // Check if user already exists
-    const existingUser = await User.findByEmail(email);
+    const existingUser = await User.findByEmail(sanitizedEmail);
     if (existingUser) {
       return res.status(409).json({ error: 'Email already registered' });
     }
 
     // Create user
-    const userId = await User.create(email, password);
+    const userId = await User.create(sanitizedEmail, password);
 
     // Generate token
-    const token = generateToken(userId, email);
+    const token = generateToken(userId, sanitizedEmail);
 
     res.status(201).json({
       message: 'User registered successfully',
@@ -42,7 +50,7 @@ exports.register = async (req, res) => {
       token
     });
   } catch (error) {
-    console.error('Register error:', error);
+    logger.error('Register error:', { error: error.message, stack: error.stack });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -57,8 +65,14 @@ exports.login = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    // Sanitize and validate email
+    const sanitizedEmail = sanitizeEmail(email);
+    if (!sanitizedEmail) {
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
     // Find user
-    const user = await User.findByEmail(email);
+    const user = await User.findByEmail(sanitizedEmail);
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -82,7 +96,7 @@ exports.login = async (req, res) => {
       preferredLanguage: user.preferred_language || 'fr'
     });
   } catch (error) {
-    console.error('Login error:', error);
+    logger.error('Login error:', { error: error.message });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -97,7 +111,7 @@ exports.getCurrentUser = async (req, res) => {
 
     res.json(user);
   } catch (error) {
-    console.error('Get user error:', error);
+    logger.error('Get user error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -115,7 +129,7 @@ exports.updateLanguage = async (req, res) => {
 
     res.json({ message: 'Language preference updated successfully' });
   } catch (error) {
-    console.error('Update language error:', error);
+    logger.error('Update language error:', { error: error.message, userId: req.user.userId });
     res.status(500).json({ error: 'Internal server error' });
   }
 };
