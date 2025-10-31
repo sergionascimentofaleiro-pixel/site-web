@@ -46,8 +46,8 @@ async function addWatermark(imageBuffer) {
       <svg width="${finalWatermarkWidth}" height="${finalWatermarkHeight}" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <style>
-            .logo { font-family: "Apple Color Emoji", "Segoe UI Emoji", sans-serif; }
-            .text { font-family: Georgia, serif; }
+            .logo { font-family: "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", "DejaVu Sans", sans-serif; }
+            .text { font-family: "Liberation Serif", Georgia, "DejaVu Serif", serif; }
           </style>
         </defs>
         <path d="M ${borderRadius} 0

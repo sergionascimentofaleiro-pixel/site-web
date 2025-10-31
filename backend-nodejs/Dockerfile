@@ -1,6 +1,16 @@
 # Dating App Backend - Dockerfile for Fly.io
 FROM node:20-slim
 
+# Install fonts for watermark rendering (Sharp/librsvg)
+# - fonts-dejavu: Base fonts
+# - fonts-noto-color-emoji: Emoji support (for 💕)
+# - fonts-liberation: Free alternative to Georgia/Times
+RUN apt-get update && apt-get install -y \
+    fonts-dejavu \
+    fonts-noto-color-emoji \
+    fonts-liberation \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 
