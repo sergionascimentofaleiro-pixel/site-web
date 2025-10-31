@@ -208,6 +208,12 @@ export class Chat implements OnInit, OnDestroy {
 
     this.messageService.getConversation(matchId).subscribe({
       next: (messages) => {
+        console.log('[Chat] Messages loaded:', messages.length);
+        console.log('[Chat] Current User ID:', this.currentUserId());
+        if (messages.length > 0) {
+          console.log('[Chat] First message:', messages[0]);
+          console.log('[Chat] First message sender_id:', messages[0].sender_id, typeof messages[0].sender_id);
+        }
         this.messages.set(messages);
         this.isLoading.set(false);
 
@@ -296,7 +302,21 @@ export class Chat implements OnInit, OnDestroy {
   }
 
   isMyMessage(message: MessageData): boolean {
-    return message.sender_id === this.currentUserId();
+    const currentUserId = this.currentUserId();
+    const senderId = message.sender_id;
+
+    // Convert both to numbers to handle potential type mismatch (PostgreSQL may return string IDs)
+    const currentUserIdNum = Number(currentUserId);
+    const senderIdNum = Number(senderId);
+
+    const result = senderIdNum === currentUserIdNum;
+
+    // Debug: log first few comparisons
+    if (this.messages().length > 0 && this.messages().indexOf(message) < 3) {
+      console.log(`[Chat] isMyMessage - Current: ${currentUserId} (${typeof currentUserId}), Sender: ${senderId} (${typeof senderId}), Result: ${result}`);
+    }
+
+    return result;
   }
 
   getTimeString(timestamp: string): string {

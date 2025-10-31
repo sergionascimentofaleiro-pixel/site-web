@@ -7,6 +7,7 @@ import { Profile as ProfileService } from './services/profile';
 import { Message as MessageService } from './services/message';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { filter } from 'rxjs/operators';
+import { environment } from './config/environment';
 
 @Component({
   selector: 'app-root',
@@ -66,6 +67,12 @@ export class App implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Log environment configuration for debugging
+    console.log('[Curvy App] Starting...');
+    console.log('[Curvy App] API URL:', environment.apiUrl);
+    console.log('[Curvy App] Socket URL:', environment.socketUrl);
+    console.log('[Curvy App] Production mode:', environment.production);
+
     // Load unread count when user is authenticated
     if (this.authService.isAuthenticated()) {
       this.checkProfile();

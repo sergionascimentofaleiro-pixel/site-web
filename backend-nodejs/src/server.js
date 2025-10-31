@@ -28,7 +28,8 @@ const allowedOrigins = [
   'http://localhost:4200',              // Dev local web
   'https://curvy-wine.vercel.app',      // Production web (Vercel)
   'capacitor://localhost',               // iOS Capacitor
-  'http://localhost',                    // Android Capacitor
+  'http://localhost',                    // Android Capacitor (HTTP)
+  'https://localhost',                   // Android Capacitor (HTTPS)
   'ionic://localhost',                   // Alternative Capacitor scheme
   'http://192.168.1.1'                   // Placeholder for dev with IP (will match regex below)
 ];
@@ -57,6 +58,10 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 3000;
+
+// Trust proxy - REQUIRED for Fly.io and other reverse proxies
+// This allows Express to correctly identify client IPs from X-Forwarded-For headers
+app.set('trust proxy', true);
 
 // Security Middleware
 // Configure helmet for security headers
