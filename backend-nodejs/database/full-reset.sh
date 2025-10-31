@@ -165,13 +165,37 @@ if [ "$USE_DATABASE_URL" = true ]; then
 
     echo "   Proxy started with PID $PROXY_PID"
     echo "   Waiting for proxy to be ready..."
-    sleep 3
+    sleep 2
 
     # Check if proxy is running
-    if kill -0 $PROXY_PID 2>/dev/null; then
-        echo "✅ Proxy is running"
+    if ! kill -0 $PROXY_PID 2>/dev/null; then
+        echo "❌ Proxy process died. Check /tmp/flyio-proxy.log"
+        exit 1
+    fi
+
+    # Wait for proxy to accept connections (test actual database connectivity)
+    echo "   Testing database connection through proxy..."
+    MAX_RETRIES=15
+    RETRY_COUNT=0
+    CONNECTED=false
+
+    while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+        # Try to connect to database through proxy
+        if psql "$DATABASE_URL" -c "SELECT 1;" > /dev/null 2>&1; then
+            CONNECTED=true
+            break
+        fi
+
+        RETRY_COUNT=$((RETRY_COUNT + 1))
+        echo "   Attempt $RETRY_COUNT/$MAX_RETRIES - waiting for connection..."
+        sleep 1
+    done
+
+    if [ "$CONNECTED" = true ]; then
+        echo "✅ Proxy is ready and accepting connections"
     else
-        echo "❌ Failed to start proxy. Check /tmp/flyio-proxy.log"
+        echo "❌ Failed to connect to database through proxy after $MAX_RETRIES attempts"
+        echo "   Check /tmp/flyio-proxy.log for details"
         exit 1
     fi
 

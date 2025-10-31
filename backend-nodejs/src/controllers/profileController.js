@@ -186,7 +186,7 @@ exports.swipe = async (req, res) => {
 // Upload profile photo
 exports.uploadPhoto = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.userId;
 
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
@@ -198,9 +198,12 @@ exports.uploadPhoto = async (req, res) => {
     // Update profile with new photo
     await Profile.updatePhoto(userId, photoUrl);
 
+    // Generate signed URL for the response
+    const signedUrl = generateSignedImageUrl(photoUrl, userId);
+
     res.json({
       success: true,
-      photoUrl: photoUrl,
+      photoUrl: signedUrl,
       message: 'Photo uploaded successfully'
     });
   } catch (error) {
@@ -212,7 +215,7 @@ exports.uploadPhoto = async (req, res) => {
 // Update profile photo URL (for external URLs)
 exports.updatePhotoUrl = async (req, res) => {
   try {
-    const userId = req.userId;
+    const userId = req.user.userId;
     const { photoUrl } = req.body;
 
     if (!photoUrl) {
