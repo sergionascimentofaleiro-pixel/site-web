@@ -22,9 +22,35 @@ const imageRoutes = require('./routes/imageRoutes');
 
 const app = express();
 const server = http.createServer(app);
+
+// Allowed origins for CORS (web + mobile apps)
+const allowedOrigins = [
+  'http://localhost:4200',              // Dev local web
+  'https://curvy-wine.vercel.app',      // Production web (Vercel)
+  'capacitor://localhost',               // iOS Capacitor
+  'http://localhost',                    // Android Capacitor
+  'ionic://localhost',                   // Alternative Capacitor scheme
+  'http://192.168.1.1'                   // Placeholder for dev with IP (will match regex below)
+];
+
+// Socket.io CORS configuration
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps)
+      if (!origin) {
+        return callback(null, true);
+      }
+      // Allow whitelisted origins
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      // Allow local network IPs for development (192.168.x.x, 10.x.x.x)
+      if (origin.match(/^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/)) {
+        return callback(null, true);
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -52,11 +78,26 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
-// CORS configuration - restrict to frontend origin only
+// CORS configuration - allow web and mobile apps
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) {
+      return callback(null, true);
+    }
+    // Allow whitelisted origins
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    // Allow local network IPs for development (192.168.x.x, 10.x.x.x)
+    if (origin.match(/^http:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?$/)) {
+      return callback(null, true);
+    }
+    // Reject other origins
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
