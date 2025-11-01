@@ -547,15 +547,11 @@ def clean_flyio_uploads():
     print(f"🧹 Cleaning old test photos from Fly.io ({flyio_app})...")
 
     try:
-        # Create batch file for cleanup
-        with open('/tmp/flyio_cleanup_batch.txt', 'w') as batch_file:
-            batch_file.write("cd /app/uploads/profiles\n")
-            batch_file.write("rm -f woman_*.*\n")
-            batch_file.write("rm -f man_*.*\n")
-            batch_file.write("ls -la\n")
-
+        # Use shell wrapper to execute compound command
+        # flyctl ssh console -C doesn't support && directly, need explicit shell
         result = subprocess.run(
-            ['flyctl', 'ssh', 'console', '-a', flyio_app, '-C', 'cd /app/uploads/profiles && rm -f woman_*.* man_*.*'],
+            ['flyctl', 'ssh', 'console', '-a', flyio_app, '-C',
+             '/bin/sh -c "cd /app/uploads/profiles && rm -f woman_*.* man_*.*"'],
             capture_output=True,
             text=True,
             timeout=60
