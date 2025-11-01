@@ -23,6 +23,7 @@ export class SocketService {
   private socket: Socket | null = null;
   private isConnected = signal(false);
   private listenersInitialized = false;
+  private hasConnectedBefore = false;
 
   // Subjects for broadcasting events (only one instance per event)
   private newMessageSubject = new Subject<MessageData>();
@@ -30,6 +31,7 @@ export class SocketService {
   private messageNotificationSubject = new Subject<{ matchId: number; message: MessageData }>();
   private typingSubject = new Subject<{ matchId: number; userId: number }>();
   private stopTypingSubject = new Subject<{ matchId: number; userId: number }>();
+  private reconnectedSubject = new Subject<void>();
 
   // Public observables that components can subscribe to
   public newMessage$: Observable<MessageData> = this.newMessageSubject.asObservable();
@@ -38,6 +40,7 @@ export class SocketService {
     this.messageNotificationSubject.asObservable();
   public typing$: Observable<{ matchId: number; userId: number }> = this.typingSubject.asObservable();
   public stopTyping$: Observable<{ matchId: number; userId: number }> = this.stopTypingSubject.asObservable();
+  public reconnected$: Observable<void> = this.reconnectedSubject.asObservable();
 
   constructor(private authService: Auth) {}
 
@@ -67,8 +70,16 @@ export class SocketService {
     });
 
     this.socket.on('connect', () => {
-      console.log('✅ WebSocket connected successfully');
+      const isReconnect = this.hasConnectedBefore;
+      console.log('✅ WebSocket connected successfully' + (isReconnect ? ' (RECONNECTED after network change)' : ''));
       this.isConnected.set(true);
+      this.hasConnectedBefore = true;
+
+      // If this is a reconnection, notify subscribers
+      if (isReconnect) {
+        console.log('🔄 Network changed detected - notifying components to rejoin rooms');
+        this.reconnectedSubject.next();
+      }
     });
 
     this.socket.on('disconnect', (reason) => {
@@ -120,24 +131,33 @@ export class SocketService {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected.set(false);
+      this.listenersInitialized = false;
+      this.hasConnectedBefore = false;
     }
   }
 
   joinConversation(matchId: number): void {
     if (this.socket) {
+      console.log(`📥 Joining conversation room: match:${matchId}`);
       this.socket.emit('join:conversation', matchId);
+    } else {
+      console.warn(`⚠️ Cannot join conversation ${matchId} - socket not connected`);
     }
   }
 
   leaveConversation(matchId: number): void {
     if (this.socket) {
+      console.log(`📤 Leaving conversation room: match:${matchId}`);
       this.socket.emit('leave:conversation', matchId);
     }
   }
 
   sendMessage(matchId: number, receiverId: number, message: string): void {
-    if (this.socket) {
+    if (this.socket && this.isConnected()) {
+      console.log(`💬 Sending message via WebSocket to match:${matchId}, receiver:${receiverId}`);
       this.socket.emit('message:send', { matchId, receiverId, message });
+    } else {
+      console.warn(`⚠️ Cannot send message - socket ${this.socket ? 'disconnected' : 'not initialized'}`);
     }
   }
 

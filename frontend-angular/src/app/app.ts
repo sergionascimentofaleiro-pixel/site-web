@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Auth } from './services/auth';
 import { Profile as ProfileService } from './services/profile';
 import { Message as MessageService } from './services/message';
+import { SocketService } from './services/socket';
 import { TranslateService, TranslateModule } from '@ngx-translate/core';
 import { filter } from 'rxjs/operators';
 import { environment } from './config/environment';
@@ -32,9 +33,13 @@ export class App implements OnInit, OnDestroy {
     public authService: Auth,
     private profileService: ProfileService,
     private messageService: MessageService,
+    private socketService: SocketService,
     private router: Router,
     public translate: TranslateService
   ) {
+    // Register socket service with auth (avoids circular dependency)
+    authService.registerSocketService(socketService);
+
     // Configure available languages
     translate.addLangs(['en', 'fr', 'pt', 'es']);
     translate.setDefaultLang('fr');

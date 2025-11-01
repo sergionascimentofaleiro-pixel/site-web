@@ -194,6 +194,20 @@ io.on('connection', (socket) => {
         return;
       }
 
+      // SECURITY: Verify user is part of the match
+      const Match = require('./models/Match');
+      const match = await Match.findById(matchId);
+      if (!match) {
+        socket.emit('message:error', { error: 'Match not found' });
+        return;
+      }
+
+      if (match.user1_id !== userId && match.user2_id !== userId) {
+        logger.warn(`[SECURITY] User ${userId} attempted to send message to match ${matchId} they're not part of`);
+        socket.emit('message:error', { error: 'Unauthorized: You are not part of this match' });
+        return;
+      }
+
       // Check if user can access this conversation
       const canAccessResult = await Subscription.canAccessConversation(userId, matchId);
       if (!canAccessResult.canAccess) {

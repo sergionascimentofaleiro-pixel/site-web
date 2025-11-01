@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../config/environment';
+import type { SocketService } from './socket';
 
 export interface User {
   id: number;
@@ -30,9 +31,15 @@ export class Auth {
   public currentUser = signal<User | null>(null);
   public isAuthenticated = signal<boolean>(false);
   private translate = inject(TranslateService);
+  private socketService?: SocketService;
 
   constructor(private http: HttpClient) {
     this.checkAuthStatus();
+  }
+
+  // Called by app component to register socket service (avoids circular dependency)
+  registerSocketService(socketService: SocketService): void {
+    this.socketService = socketService;
   }
 
   private checkAuthStatus(): void {
@@ -70,6 +77,14 @@ export class Auth {
     return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, { email, password })
       .pipe(
         tap(response => {
+          console.log('🔐 Logging in - disconnecting old WebSocket if any');
+
+          // Disconnect any existing WebSocket connection before logging in
+          // This handles the case where user switches accounts without logging out
+          if (this.socketService) {
+            this.socketService.disconnect();
+          }
+
           this.setToken(response.token);
           this.isAuthenticated.set(true);
           // Load user data to trigger the effect in app.ts
@@ -79,6 +94,14 @@ export class Auth {
   }
 
   logout(): void {
+    console.log('🔓 Logging out - disconnecting WebSocket');
+
+    // Disconnect WebSocket before clearing auth data
+    if (this.socketService) {
+      this.socketService.disconnect();
+      console.log('✅ WebSocket disconnected on logout');
+    }
+
     localStorage.removeItem(this.tokenKey);
     this.currentUser.set(null);
     this.isAuthenticated.set(false);

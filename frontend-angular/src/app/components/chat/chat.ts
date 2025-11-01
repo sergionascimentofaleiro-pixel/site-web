@@ -108,6 +108,20 @@ export class Chat implements OnInit, OnDestroy {
       })
     );
 
+    // Handle WebSocket reconnection (e.g., network switch WiFi -> 4G)
+    this.subscriptions.push(
+      this.socketService.reconnected$.subscribe(() => {
+        const matchId = this.matchId();
+        if (matchId) {
+          console.log('🔄 WebSocket reconnected - rejoining conversation and reloading messages');
+          // Rejoin the conversation room
+          this.socketService.joinConversation(matchId);
+          // Reload messages to sync any missed during disconnection
+          this.loadMessages(true);
+        }
+      })
+    );
+
     // Get matchId from route
     this.subscriptions.push(
       this.route.params.subscribe(params => {
@@ -242,6 +256,7 @@ export class Chat implements OnInit, OnDestroy {
     // Check if WebSocket is connected
     if (this.socketService.getConnectionStatus()) {
       // Send via WebSocket
+      console.log('[Chat] Attempting to send via WebSocket');
       this.socketService.sendMessage(matchId, match.otherUser.id, messageText);
 
       // Stop typing indicator
@@ -250,13 +265,13 @@ export class Chat implements OnInit, OnDestroy {
       // Set timeout to fallback to HTTP if WebSocket doesn't respond
       setTimeout(() => {
         if (this.isSending()) {
-          console.warn('WebSocket timeout, falling back to HTTP');
+          console.warn('⚠️ WebSocket timeout (3s) - falling back to HTTP');
           this.sendViaHttp(matchId, match.otherUser.id, messageText);
         }
       }, 3000);
     } else {
       // Fallback to HTTP if WebSocket not connected
-      console.log('WebSocket not connected, using HTTP');
+      console.log('⚠️ WebSocket not connected - using HTTP directly');
       this.sendViaHttp(matchId, match.otherUser.id, messageText);
     }
 
@@ -309,14 +324,7 @@ export class Chat implements OnInit, OnDestroy {
     const currentUserIdNum = Number(currentUserId);
     const senderIdNum = Number(senderId);
 
-    const result = senderIdNum === currentUserIdNum;
-
-    // Debug: log first few comparisons
-    if (this.messages().length > 0 && this.messages().indexOf(message) < 3) {
-      console.log(`[Chat] isMyMessage - Current: ${currentUserId} (${typeof currentUserId}), Sender: ${senderId} (${typeof senderId}), Result: ${result}`);
-    }
-
-    return result;
+    return senderIdNum === currentUserIdNum;
   }
 
   getTimeString(timestamp: string): string {
